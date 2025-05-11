@@ -1,0 +1,180 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Auth {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+type verifyOTPresponse {
+  message: String!
+}
+
+type SignUpresponse {
+  message: String!
+}
+
+type userLoginResponse {
+  access_token: String!
+  refresh_token: String!
+}
+
+type Academy {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+type Teacher {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+type User {
+  id: Int!
+  name: String!
+  email: String!
+}
+
+type Course {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+type Lecture {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+type Query {
+  auth(id: Int!): Auth!
+  users: [User!]!
+  user(id: Int!): User!
+  academies: [Academy!]!
+  academy(id: Int!): Academy!
+  teachers: [Teacher!]!
+  teacher(id: Int!): Teacher!
+  courses: [Course!]!
+  course(id: Int!): Course!
+  lectures: [Lecture!]!
+  lecture(id: Int!): Lecture!
+}
+
+type Mutation {
+  signup(createAuthInput: SignUpInput!): SignUpresponse!
+  createAuth(createAuthInput: CreateAuthInput!): Auth!
+  verifyOTP(verifyOTPInput: verifyOTPInput!): verifyOTPresponse!
+  userLogin(userLoginInput: userLoginInput!): userLoginResponse!
+  updateAuth(updateAuthInput: UpdateAuthInput!): Auth!
+  removeAuth(id: Int!): Auth!
+  createUser(createUserInput: CreateUserInput!): User!
+  updateUser(updateUserInput: UpdateUserInput!): User!
+  removeUser(id: Int!): User!
+  createAcademy(createAcademyInput: CreateAcademyInput!): Academy!
+  updateAcademy(updateAcademyInput: UpdateAcademyInput!): Academy!
+  removeAcademy(id: Int!): Academy!
+  createTeacher(createTeacherInput: CreateTeacherInput!): Teacher!
+  updateTeacher(updateTeacherInput: UpdateTeacherInput!): Teacher!
+  removeTeacher(id: Int!): Teacher!
+  createCourse(createCourseInput: CreateCourseInput!): Course!
+  updateCourse(updateCourseInput: UpdateCourseInput!): Course!
+  removeCourse(id: Int!): Course!
+  createLecture(createLectureInput: CreateLectureInput!): Lecture!
+  updateLecture(updateLectureInput: UpdateLectureInput!): Lecture!
+  removeLecture(id: Int!): Lecture!
+}
+
+input SignUpInput {
+  email: String!
+  password: String!
+  first_name: String!
+  last_name: String!
+}
+
+input CreateAuthInput {
+  """Example field (placeholder)"""
+  email: ID!
+
+  """Example field (placeholder)"""
+  password: ID!
+
+  """Example field (placeholder)"""
+  role: ID!
+}
+
+input verifyOTPInput {
+  otp: Int!
+  email: String!
+}
+
+input userLoginInput {
+  email: String!
+  password: String!
+}
+
+input UpdateAuthInput {
+  """Example field (placeholder)"""
+  email: ID
+
+  """Example field (placeholder)"""
+  password: ID
+
+  """Example field (placeholder)"""
+  role: ID
+  id: Int!
+}
+
+input CreateUserInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateUserInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateAcademyInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateAcademyInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateTeacherInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateTeacherInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateCourseInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateCourseInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateLectureInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateLectureInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
