@@ -18,6 +18,7 @@ export class TeachersResolver {
     return this.teachersService.findAll();
   }
 
+
   @Query(() => Teacher, { name: 'teacher' })
   findOne(@Args('id', { type: () => Int }) id: number) {
     return this.teachersService.findOne(id);

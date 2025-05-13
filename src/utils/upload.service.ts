@@ -31,7 +31,6 @@ export class UploadService {
     return { uploadUrl, key };
   }
 
-
   async uploadFromGraphQL(file: FileUpload, type: 'image' | 'file') {
     try {
     const { createReadStream, filename, mimetype } = file;
@@ -52,7 +51,7 @@ export class UploadService {
       ContentType: mimetype,
       ContentLength: _buffer.length
     }));
-    return { key };
+    return { key, url: `https://s3.ap-northeast-1.wasabisys.com/${process.env.S3_BUCKET}/${key}`,};
   } catch (error) {
     console.log(error)   
     throw new BadRequestException(error);

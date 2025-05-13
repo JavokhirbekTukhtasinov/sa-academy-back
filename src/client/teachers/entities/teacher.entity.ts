@@ -5,3 +5,4 @@ export class Teacher {
   @Field(() => Int, { description: 'Example field (placeholder)' })
   exampleField: number;
 }
+
