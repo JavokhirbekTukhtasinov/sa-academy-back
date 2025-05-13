@@ -287,6 +287,7 @@ input UpdateAcademyInput {
 }
 
 input CreateTeacherInput {
+  """First name"""
   first_name: String!
   last_name: String!
   full_name: String
@@ -304,10 +305,11 @@ input CreateTeacherInput {
   teacher_files: [Upload!]
 
   """Academy ID as stringified BigInt"""
-  academy_id: String
+  academy_id: Int
 }
 
 input UpdateTeacherInput {
+  """First name"""
   first_name: String
   last_name: String
   full_name: String
@@ -325,7 +327,7 @@ input UpdateTeacherInput {
   teacher_files: [Upload!]
 
   """Academy ID as stringified BigInt"""
-  academy_id: String
+  academy_id: Int
   id: Int!
 }
 

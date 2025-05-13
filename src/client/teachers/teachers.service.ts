@@ -14,6 +14,16 @@ export class TeachersService {
   async create(createTeacherInput: CreateTeacherInput): Promise<CreateTeacherResponse> {
     try {
 
+      console.log(createTeacherInput.image)
+
+      //@ts-ignore
+      const file  = await this.uploadService.uploadFromGraphQL((await createTeacherInput.image), 'image');
+
+      // console.log(image_url)
+      // const image =await this.uploadService.uploadSmallFile(file, 'image');
+      return {
+        message: 'success'
+      }
       const password = await generatePasswordHash(createTeacherInput.password);
       const newTeacher = await this.prisma.sa_teachers.create({
         data: {

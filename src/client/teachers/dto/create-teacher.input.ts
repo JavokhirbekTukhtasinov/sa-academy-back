@@ -1,12 +1,14 @@
 import { InputType, Field, Int, ObjectType } from '@nestjs/graphql';
-import { IsEmail, IsString, MinLength } from 'class-validator';
-import { GraphQLUpload } from 'graphql-upload';
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { GraphQLUpload, FileUpload } from 'graphql-upload';
 import { Upload } from 'src/scalers/upload.scaler';
 
 @InputType()
 export class CreateTeacherInput {
 
-  @Field(() => String, { nullable: false })
+  @Field(() => String, { nullable: false, description: 'First name' })
+  @IsString()
+  @IsNotEmpty()
   first_name?: string;
 
   @Field(() => String, { nullable: false })
@@ -28,16 +30,16 @@ export class CreateTeacherInput {
   password: string;
 
   @Field(() => GraphQLUpload, { nullable: false, description: 'Profile image file' })
-  image: Promise<File>;
+  image: Promise<FileUpload>;
 
   @Field(() => String, {nullable: true, description: 'Phone number'})
   phone_number?:string
 
   @Field(() => [GraphQLUpload], { nullable: true, description: 'Optional multiple teacher files' })
-  teacher_files?: Promise<(Upload | null)[]>
+  teacher_files?: Promise<(FileUpload | null)[]>
 
-  @Field(() => String, { nullable: true, description: 'Academy ID as stringified BigInt' })
-  academy_id?: string;
+  @Field(() => Int, { nullable: true, description: 'Academy ID as stringified BigInt' })
+  academy_id?: number;
 
 }
 

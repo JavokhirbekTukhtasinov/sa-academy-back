@@ -1,76 +1,115 @@
-// ✅ NESTJS UPLOAD SERVICE — WASABI & CLOUDFLARE R2 (VIDEOS, IMAGES, FILES)
-
-import { Injectable } from '@nestjs/common';
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+// upload.service.ts
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { v4 as uuid } from 'uuid';
+import { FileUpload } from 'graphql-upload';
+import { Readable } from 'stream';
+import {buffer} from 'node:stream/consumers'
+import { Upload } from 'src/scalers/upload.scaler';
 
 @Injectable()
 export class UploadService {
   private wasabi = new S3Client({
     endpoint: 'https://s3.ap-northeast-1.wasabisys.com',
+    region: 'ap-northeast-1',
+    forcePathStyle: true,
     credentials: {
       accessKeyId: process.env.WASABI_KEY,
       secretAccessKey: process.env.WASABI_SECRET,
     },
-    region: 'ap-northeast-1',
-    forcePathStyle: true,
   });
 
-  private r2 = new S3Client({
-    endpoint: 'https://<your-account-id>.r2.cloudflarestorage.com',
-    credentials: {
-      accessKeyId: process.env.CLOUDFLARE_R2_KEY,
-      secretAccessKey: process.env.CLOUDFLARE_R2_SECRET,
-    },
-    region: 'auto',
-    forcePathStyle: true,
-  });
+  async generateSignedVideoUrl(filename: string) {
+    const key = `videos/${uuid()}-${filename}`;
+    const command = new PutObjectCommand({
+      Bucket: process.env.S3_BUCKET,
+      Key: key,
+      ContentType: 'video/mp4',
+    });
+    const uploadUrl = await getSignedUrl(this.wasabi, command, { expiresIn: 300 });
+    return { uploadUrl, key };
+  }
 
-  async generateUploadUrl({
-    filename,
-    provider,
-    fileType,
-  }: {
-    filename: string;
-    provider: 'wasabi' | 'r2';
-    fileType: 'video' | 'image' | 'file';
-  }) {
-    const key = `${fileType}s/${uuid()}-${filename}`;
-    const client = provider === 'wasabi' ? this.wasabi : this.r2;
 
-    const contentType = this.getMimeTypeFromFile(filename, fileType);
+  async uploadFromGraphQL(file: FileUpload, type: 'image' | 'file') {
+    try {
+    const { createReadStream, filename, mimetype } = file;
+    const key = `${type}s/${filename}`;
+    const stream = createReadStream();
+
+    if (!stream || typeof stream.pipe !== 'function') {
+      throw new Error('Invalid file stream.');
+    }
+
+    const _buffer = await this.streamToBuffer(stream);
+
+    console.log(_buffer.length)
+    await this.wasabi.send(new PutObjectCommand({
+      Bucket: process.env.S3_BUCKET,
+      Key: key,
+      Body: _buffer,
+      ContentType: mimetype,
+      ContentLength: _buffer.length
+    }));
+    return { key };
+  } catch (error) {
+    console.log(error)   
+    throw new BadRequestException(error);
+  }
+  }
+
+
+  async streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
+    
+    return new Promise((resolve, reject) => {
+      const chunks: Buffer[] = [];
+  
+      stream.on('data', (chunk) => {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      });
+  
+      stream.on('end', () => {
+        resolve(Buffer.concat(chunks));
+      });
+  
+      stream.on('error', (err) => {
+        console.log(err)
+        reject(err);
+      });
+    });
+  }
+  
+  
+  async uploadSmallFile(file: FileUpload, type: 'image' | 'file') {
+    const { createReadStream, filename } = file;
+    const ext = filename.split('.').pop();
+    const key = `${type}s/${uuid()}.${ext}`;
+
+    const stream = createReadStream();
 
     const command = new PutObjectCommand({
       Bucket: process.env.S3_BUCKET,
       Key: key,
-      ContentType: contentType,
+      Body: stream,
+      ContentType: this.getContentType(ext, type),
     });
 
-    const uploadUrl = await getSignedUrl(client, command, { expiresIn: 300 });
-    return { uploadUrl, key };
+    await this.wasabi.send(command);
+
+    return {
+      key,
+      url: `https://s3.ap-northeast-1.wasabisys.com/${process.env.S3_BUCKET}/${key}`,
+    };
   }
 
-  async generatePlaybackUrl({ key, provider }: { key: string; provider: 'wasabi' | 'r2' }) {
-    const client = provider === 'wasabi' ? this.wasabi : this.r2;
-
-    const command = new GetObjectCommand({
-      Bucket: process.env.S3_BUCKET,
-      Key: key,
-    });
-
-    const playbackUrl = await getSignedUrl(client, command, { expiresIn: 3600 });
-    return { playbackUrl };
-  }
-
-  private getMimeTypeFromFile(filename: string, fileType: string): string {
-    const ext = filename.split('.').pop()?.toLowerCase();
-    if (fileType === 'video') return 'video/mp4';
-    if (fileType === 'image') {
+  private getContentType(ext: string, type: string): string {
+    if (type === 'image') {
       if (ext === 'png') return 'image/png';
       if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
       if (ext === 'webp') return 'image/webp';
     }
+    if (ext === 'pdf') return 'application/pdf';
     return 'application/octet-stream';
   }
 }
