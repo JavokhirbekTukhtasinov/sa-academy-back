@@ -1,14 +1,14 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { TeachersService } from './teachers.service';
 import { Teacher } from './entities/teacher.entity';
-import { CreateTeacherInput } from './dto/create-teacher.input';
+import { CreateTeacherInput, CreateTeacherResponse } from './dto/create-teacher.input';
 import { UpdateTeacherInput } from './dto/update-teacher.input';
 
 @Resolver(() => Teacher)
 export class TeachersResolver {
   constructor(private readonly teachersService: TeachersService) {}
 
-  @Mutation(() => Teacher)
+  @Mutation(() => CreateTeacherResponse)
   createTeacher(@Args('createTeacherInput') createTeacherInput: CreateTeacherInput) {
     return this.teachersService.create(createTeacherInput);
   }

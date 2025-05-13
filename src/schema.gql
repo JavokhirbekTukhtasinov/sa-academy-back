@@ -20,14 +20,98 @@ type userLoginResponse {
   refresh_token: String!
 }
 
-type Academy {
-  """Example field (placeholder)"""
-  exampleField: Int!
+type Course {
+  id: Int!
 }
 
 type Teacher {
   """Example field (placeholder)"""
   exampleField: Int!
+}
+
+type AcademyType {
+  id: Int
+  created_at: DateTime
+
+  """Academy type name"""
+  name: String!
+  sa_academies: [Academy!]
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Academy {
+  id: Int
+  created_at: DateTime
+
+  """Academy name"""
+  name: DateTime!
+
+  """Academy location"""
+  location: String!
+
+  """Academy owner name"""
+  owner_name: String!
+
+  """Academy phone number"""
+  phone_number: String!
+
+  """Academy description"""
+  description: String!
+
+  """Academy email"""
+  email: String!
+
+  """Academy amount of teachers"""
+  amount_of_teachers: Int!
+
+  """Academy amount of students"""
+  academy_type_id: Int!
+
+  """Academy status"""
+  status: AcademyStatus
+  sa_academy_types: AcademyType
+  sa_academy_files: [AcademyFile!]
+  sa_academy_images: [AcademyImage!]
+  sa_courses: [Course!]
+  sa_teachers: [Teacher!]
+}
+
+enum AcademyStatus {
+  PENDING
+  CONFIRMED
+  SUSPENDED
+}
+
+type AcademyFile {
+  id: Int!
+  created_at: DateTime!
+  file_name: Float!
+  file_url: String!
+  is_hidden: Boolean
+  academy_id: Int
+  sa_academies: Academy
+}
+
+type AcademyImage {
+  id: Int!
+  created_at: DateTime!
+  file_name: String!
+  image_url: String!
+  is_main: Boolean
+  academy_id: Int
+  sa_academies: Academy
+}
+
+type createAcademyInputResponse {
+  message: String!
+}
+
+type CreateTeacherResponse {
+  message: String
 }
 
 type User {
@@ -36,9 +120,8 @@ type User {
   email: String!
 }
 
-type Course {
-  """Example field (placeholder)"""
-  exampleField: Int!
+type CreateCourseResponse {
+  message: String
 }
 
 type Lecture {
@@ -70,13 +153,13 @@ type Mutation {
   createUser(createUserInput: CreateUserInput!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: Int!): User!
-  createAcademy(createAcademyInput: CreateAcademyInput!): Academy!
+  createAcademy(createAcademyInput: CreateAcademyInput!): createAcademyInputResponse!
   updateAcademy(updateAcademyInput: UpdateAcademyInput!): Academy!
   removeAcademy(id: Int!): Academy!
-  createTeacher(createTeacherInput: CreateTeacherInput!): Teacher!
+  createTeacher(createTeacherInput: CreateTeacherInput!): CreateTeacherResponse!
   updateTeacher(updateTeacherInput: UpdateTeacherInput!): Teacher!
   removeTeacher(id: Int!): Teacher!
-  createCourse(createCourseInput: CreateCourseInput!): Course!
+  createCourse(createCourseInput: CreateCourseInput!): CreateCourseResponse!
   updateCourse(updateCourseInput: UpdateCourseInput!): Course!
   removeCourse(id: Int!): Course!
   createLecture(createLectureInput: CreateLectureInput!): Lecture!
@@ -136,35 +219,156 @@ input UpdateUserInput {
 }
 
 input CreateAcademyInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  """Academy name"""
+  name: String!
+
+  """Academy location"""
+  location: String!
+
+  """Academy owner name"""
+  owner_name: String!
+
+  """Academy phone number"""
+  phone_number: String!
+
+  """Academy description"""
+  description: String!
+
+  """Academy email"""
+  email: String!
+
+  """Number of teachers in the academy"""
+  amount_of_teachers: Int
+
+  """Academy type ID (FK)"""
+  academy_type_id: Int
+
+  """Optional multiple academy images"""
+  sa_academy_images: [Upload!]
+
+  """Optional multiple academy files"""
+  sa_academy_files: [Upload!]
 }
 
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
+
 input UpdateAcademyInput {
-  """Example field (placeholder)"""
-  exampleField: Int
+  """Academy name"""
+  name: String
+
+  """Academy location"""
+  location: String
+
+  """Academy owner name"""
+  owner_name: String
+
+  """Academy phone number"""
+  phone_number: String
+
+  """Academy description"""
+  description: String
+
+  """Academy email"""
+  email: String
+
+  """Number of teachers in the academy"""
+  amount_of_teachers: Int
+
+  """Academy type ID (FK)"""
+  academy_type_id: Int
+
+  """Optional multiple academy images"""
+  sa_academy_images: [Upload!]
+
+  """Optional multiple academy files"""
+  sa_academy_files: [Upload!]
   id: Int!
 }
 
 input CreateTeacherInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  first_name: String!
+  last_name: String!
+  full_name: String
+  email: String!
+  description: String
+  password: String!
+
+  """Profile image file"""
+  image: Upload!
+
+  """Phone number"""
+  phone_number: String
+
+  """Optional multiple teacher files"""
+  teacher_files: [Upload!]
+
+  """Academy ID as stringified BigInt"""
+  academy_id: String
 }
 
 input UpdateTeacherInput {
-  """Example field (placeholder)"""
-  exampleField: Int
+  first_name: String
+  last_name: String
+  full_name: String
+  email: String
+  description: String
+  password: String
+
+  """Profile image file"""
+  image: Upload
+
+  """Phone number"""
+  phone_number: String
+
+  """Optional multiple teacher files"""
+  teacher_files: [Upload!]
+
+  """Academy ID as stringified BigInt"""
+  academy_id: String
   id: Int!
 }
 
 input CreateCourseInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  course_name: String
+  real_price: String
+  prev_price: String
+
+  """Teacher ID as stringified BigInt"""
+  teacher_id: Int!
+
+  """Optional user ID as stringified BigInt"""
+  user_id: Int
+
+  """Thumbnail image file"""
+  thumbnail: Upload
+
+  """Academy ID as stringified BigInt"""
+  academiy_id: Int
+
+  """Course type ID as stringified BigInt"""
+  course_type_id: Int
 }
 
 input UpdateCourseInput {
-  """Example field (placeholder)"""
-  exampleField: Int
+  course_name: String
+  real_price: String
+  prev_price: String
+
+  """Teacher ID as stringified BigInt"""
+  teacher_id: Int
+
+  """Optional user ID as stringified BigInt"""
+  user_id: Int
+
+  """Thumbnail image file"""
+  thumbnail: Upload
+
+  """Academy ID as stringified BigInt"""
+  academiy_id: Int
+
+  """Course type ID as stringified BigInt"""
+  course_type_id: Int
   id: Int!
 }
 

@@ -1,15 +1,16 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { AcademiesService } from './academies.service';
 import { Academy } from './entities/academy.entity';
-import { CreateAcademyInput } from './dto/create-academy.input';
+import { CreateAcademyInput, createAcademyInputResponse } from './dto/create-academy.input';
 import { UpdateAcademyInput } from './dto/update-academy.input';
 
 @Resolver(() => Academy)
 export class AcademiesResolver {
   constructor(private readonly academiesService: AcademiesService) {}
 
-  @Mutation(() => Academy)
+  @Mutation(() => createAcademyInputResponse)
   createAcademy(@Args('createAcademyInput') createAcademyInput: CreateAcademyInput) {
+    console.log(createAcademyInput)
     return this.academiesService.create(createAcademyInput);
   }
 

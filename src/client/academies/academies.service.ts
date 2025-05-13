@@ -1,11 +1,37 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAcademyInput } from './dto/create-academy.input';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { CreateAcademyInput, createAcademyInputResponse } from './dto/create-academy.input';
 import { UpdateAcademyInput } from './dto/update-academy.input';
+import { PrismaService } from 'src/prisma.service';
+
 
 @Injectable()
 export class AcademiesService {
-  create(createAcademyInput: CreateAcademyInput) {
-    return 'This action adds a new academy';
+  constructor(
+    private prisma: PrismaService
+  ) {}
+  async create(createAcademyInput: CreateAcademyInput):Promise<createAcademyInputResponse> {
+    
+    try {
+      const academy = await this.prisma.sa_academies.create({
+        data: {
+          name: createAcademyInput.name,
+          location: createAcademyInput.location,
+          owner_name: createAcademyInput.owner_name,
+          phone_number: createAcademyInput.phone_number,
+          description: createAcademyInput.description,
+          email: createAcademyInput.email,
+          amount_of_teachers: createAcademyInput.amount_of_teachers,
+          academy_type_id: createAcademyInput.academy_type_id
+        }
+      })
+      if(academy) {
+        return {
+          message: 'success'
+        }
+      }
+    } catch (error) {
+      throw new BadRequestException(error);  
+    }
   }
 
   findAll() {

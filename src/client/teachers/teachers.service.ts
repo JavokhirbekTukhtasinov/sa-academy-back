@@ -1,11 +1,39 @@
-import { Injectable } from '@nestjs/common';
-import { CreateTeacherInput } from './dto/create-teacher.input';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { CreateTeacherInput, CreateTeacherResponse } from './dto/create-teacher.input';
 import { UpdateTeacherInput } from './dto/update-teacher.input';
+import { PrismaService } from 'src/prisma.service';
+import { generatePasswordHash } from 'src/utils/hash';
+import { UploadService } from 'src/utils/upload.service';
 
 @Injectable()
 export class TeachersService {
-  create(createTeacherInput: CreateTeacherInput) {
-    return 'This action adds a new teacher';
+  constructor(
+    private prisma: PrismaService,
+    private uploadService: UploadService
+  ){}
+  async create(createTeacherInput: CreateTeacherInput): Promise<CreateTeacherResponse> {
+    try {
+
+      const password = await generatePasswordHash(createTeacherInput.password);
+      const newTeacher = await this.prisma.sa_teachers.create({
+        data: {
+          first_name: createTeacherInput.first_name,
+          last_name: createTeacherInput.last_name,
+          full_name: createTeacherInput.full_name,
+          email: createTeacherInput.email,
+          password: password,
+          academy_id: createTeacherInput.academy_id ? BigInt(createTeacherInput.academy_id) : null,
+        }
+      })
+      if(newTeacher) {
+         return {
+          message: 'success'
+        }
+      }
+    } catch (error) {
+      console.log(error)
+      throw new BadRequestException(error);
+    }
   }
 
   findAll() {
