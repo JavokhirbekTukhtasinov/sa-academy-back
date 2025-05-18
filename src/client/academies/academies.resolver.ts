@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { AcademiesService } from './academies.service';
-import { Academy } from './entities/academy.entity';
+import { Academy, AcademyCategories } from './entities/academy.entity';
 import { CreateAcademyInput, createAcademyInputResponse } from './dto/create-academy.input';
 import { UpdateAcademyInput } from './dto/update-academy.input';
 
@@ -23,14 +23,19 @@ export class AcademiesResolver {
   findOne(@Args('id', { type: () => Int }) id: number) {
     return this.academiesService.findOne(id);
   }
-
+  
   @Mutation(() => Academy)
   updateAcademy(@Args('updateAcademyInput') updateAcademyInput: UpdateAcademyInput) {
     return this.academiesService.update(updateAcademyInput.id, updateAcademyInput);
   }
-
+  
+  @Query(() => [AcademyCategories], { name: 'academyCategories' })
+  getAcademyCategories() {
+   return this.academiesService.getAcademyCategories();
+ }
   @Mutation(() => Academy)
   removeAcademy(@Args('id', { type: () => Int }) id: number) {
     return this.academiesService.remove(id);
   }
+
 }

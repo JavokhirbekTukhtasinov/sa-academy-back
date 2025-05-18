@@ -1,8 +1,10 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int, Context } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
-import { Auth, SignUpInput, SignUpresponse, userLoginInput, userLoginResponse, verifyOTPInput, verifyOTPresponse } from './entities/auth.entity';
+import { Auth, LoginInput, SignUpInput, SignUpresponse,  userLoginResponse, verifyOTPInput, verifyOTPresponse } from './entities/auth.entity';
 import { CreateAuthInput } from './dto/create-auth.input';
 import { UpdateAuthInput } from './dto/update-auth.input';
+import { Res } from '@nestjs/common';
+import { Response } from 'express';
 
 @Resolver(() => Auth)
 export class AuthResolver {
@@ -24,8 +26,29 @@ export class AuthResolver {
   }
 
   @Mutation(() => userLoginResponse)
-  userLogin(@Args('userLoginInput') userLoginInput: userLoginInput ) {
-    return this.authService.userLogin(userLoginInput);
+  async login(@Args('loginInput') LoginInput: LoginInput , @Context() context) {
+    const user = await this.authService.login(LoginInput);
+    const {res} = context;
+
+    res.cookie('role', LoginInput.role, {
+      httpOnly: false,
+      maxAge: 15 * 60 * 1000, // match access token
+    });
+
+    res.cookie('access_token', user?.access_token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 15 * 60 * 1000, // 15 mins
+    });
+
+    res.cookie('refresh_token', user?.refresh_token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+    return user
   }
 
   @Query(() => [Auth], { name: 'auth' })
@@ -46,5 +69,22 @@ export class AuthResolver {
   @Mutation(() => Auth)
   removeAuth(@Args('id', { type: () => Int }) id: number) {
     return this.authService.remove(id);
+  }
+
+
+
+  @Mutation(() => String)
+  async refreshToken(@Context() context, @Res({ passthrough: true }) res: Response) {
+    const refresh_token = context.req.cookies['refresh_token'];
+    const { access_token, new_refresh_token, user } = await this.authService.refresh(refresh_token);
+
+    res.cookie('refresh_token', new_refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return access_token;
   }
 }

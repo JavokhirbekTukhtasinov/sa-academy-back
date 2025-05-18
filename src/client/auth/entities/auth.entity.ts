@@ -1,5 +1,8 @@
-import { ObjectType, Field, Int, InputType } from '@nestjs/graphql';
+import { ObjectType, Field, Int, InputType, registerEnumType, createUnionType } from '@nestjs/graphql';
 import { IsEmail, MinLength } from 'class-validator';
+import { Academy } from 'src/client/academies/entities/academy.entity';
+import { Teacher } from 'src/client/teachers/entities/teacher.entity';
+import { User } from 'src/client/users/entities/user.entity';
 
 @ObjectType()
 export class Auth {
@@ -51,9 +54,23 @@ export class SignUpInput {
 }
 
 
+
+
+export enum LoginRole {
+  ADMIN = "ADMIN",
+  TEACHER = "TEACHER",
+  STUDENT = "STUDENT",
+  ACADEMY = "ACADEMY"
+}
+
+registerEnumType(LoginRole, {
+  name: "LoginRole",
+});
+
+
 @InputType()
-export class userLoginInput {
-  
+export class LoginInput {
+
   @Field()
   @IsEmail()
   email: string;
@@ -61,8 +78,28 @@ export class userLoginInput {
   @Field()
   @MinLength(8)
   password: string;
+
+  @Field({nullable:false, description: 'send login role(ADMIN, TEACHER, STUDENT, ACADEMY)'})
+  role: LoginRole
+
 }
 
+
+export const userUnion = createUnionType({
+  name: 'userUnion',
+  types: () => [User, Teacher, Academy] as const,
+  resolveType(value) {
+    if (value.__typename === 'STUDENT') {
+      return User;
+    }
+    if (value.__typename === 'Teacher') {
+      return Teacher;
+    }
+    if (value.__typename === 'Academy') {
+      return Academy;
+    }
+  }
+})
 
 
 @ObjectType()
@@ -72,4 +109,7 @@ export class userLoginResponse {
   
   @Field()
   refresh_token: string;
+
+  @Field(() => userUnion)
+  user:typeof userUnion;
 }

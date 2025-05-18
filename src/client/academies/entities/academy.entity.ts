@@ -1,7 +1,8 @@
-import { ObjectType, Field, Int, GraphQLISODateTime, InputType } from '@nestjs/graphql';
+import { ObjectType, Field, Int, GraphQLISODateTime, InputType, ID } from '@nestjs/graphql';
 import { Course } from 'src/client/courses/entities/course.entity';
 import { Teacher } from 'src/client/teachers/entities/teacher.entity';
 import { registerEnumType } from "@nestjs/graphql";
+import { GraphQLBigInt } from 'graphql-scalars';
 
 
 export enum AcademyStatus {
@@ -29,15 +30,15 @@ export class AcademyType {
 }
 
 
-
 @ObjectType()
 export class Academy {
   @Field(() => Int, {nullable: true})
   id?:number
+
   @Field(() => GraphQLISODateTime, {nullable: true,})
   created_at?:Date
   
-  @Field(() => GraphQLISODateTime, {nullable: false, description: 'Academy name'})
+  @Field(() => ID, {nullable: false, description: 'Academy name'})
   name:string
   
   @Field(() => String, {nullable: false, description: 'Academy location'})
@@ -58,10 +59,10 @@ export class Academy {
   // @Field(() => String, {nullable: true, description: 'Academy password'})
   // password?:string
   
-  @Field(() => Int, {nullable: false, description: 'Academy amount of teachers'})
+  @Field(() => Int, {nullable: true, description: 'Academy amount of teachers'})
   amount_of_teachers?:number
   
-  @Field(() => Int, {nullable: false, description: 'Academy amount of students'})
+  @Field(() => Int, {nullable: true, description: 'Academy amount of students'})
   academy_type_id:number
 
   @Field(() => AcademyStatus, {nullable: true, description: 'Academy status'}) 
@@ -72,7 +73,6 @@ export class Academy {
 
   @Field( () => [AcademyFile], { nullable: true } )
   sa_academy_files?: AcademyFile[]
-
 
   @Field( () => [AcademyImage], { nullable: true } )
   sa_academy_images?: AcademyImage[]
@@ -171,4 +171,22 @@ export class CreateAcademyInput {
   
   @Field(() => Int, {nullable: false, description: 'Academy amount of students'})
   academy_type_id:number
+}
+
+
+
+@ObjectType({description: "academy categories"})
+export class AcademyCategories {
+
+  @Field(() => GraphQLBigInt, {nullable: false})
+  id:bigint
+
+  @Field(() => Date, {nullable: false})
+  created_at:Date
+
+  @Field(() => String, {nullable: false})
+  name: string
+
+  @Field( () => [Academy], { nullable: true } )
+  sa_academies?: Academy[]
 }

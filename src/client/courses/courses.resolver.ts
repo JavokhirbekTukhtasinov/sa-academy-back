@@ -3,6 +3,11 @@ import { CoursesService } from './courses.service';
 import { Course } from './entities/course.entity';
 import { CreateCourseInput, CreateCourseResponse } from './dto/create-course.input';
 import { UpdateCourseInput } from './dto/update-course.input';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../guards/gql-auth.guard';
+import { RolesGuard } from '../guards/roles.guard';
+import { CurrentUser } from '../decorators/current-user.decorator';
+import { Roles } from '../decorators/oles.decorator';
 
 @Resolver(() => Course)
 export class CoursesResolver {
@@ -13,9 +18,11 @@ export class CoursesResolver {
     return this.coursesService.create(createCourseInput);
   }
 
+  @UseGuards(AuthGuard)
   @Query(() => [Course], { name: 'courses' })
-  findAll() {
-    return this.coursesService.findAll();
+  // @Roles('TEACHER')
+  getTeacherCourses(@CurrentUser() user: any) {
+    return this.coursesService.findTeacherCourses();
   }
 
   @Query(() => Course, { name: 'course' })

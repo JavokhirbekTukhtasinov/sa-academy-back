@@ -34,8 +34,25 @@ export class AcademiesService {
     }
   }
 
-  findAll() {
-    return `This action returns all academies`;
+
+  async getAcademyCategories() {
+    try {
+      return await this.prisma.sa_categories.findMany();
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async findAll() {
+    try {
+      return await this.prisma.sa_academies.findMany({
+        where: {
+          status: 'CONFIRMED'
+        }
+      });
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   findOne(id: number) {

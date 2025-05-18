@@ -10,6 +10,7 @@ export class TeachersResolver {
 
   @Mutation(() => CreateTeacherResponse)
   createTeacher(@Args('createTeacherInput') createTeacherInput: CreateTeacherInput) {
+    console.log(createTeacherInput)
     return this.teachersService.create(createTeacherInput);
   }
 

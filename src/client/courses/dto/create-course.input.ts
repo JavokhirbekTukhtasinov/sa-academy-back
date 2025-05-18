@@ -12,7 +12,7 @@ export class CreateCourseInput {
   real_price?: string;
 
   @Field(() => String, { nullable: true })
-  prev_price?: string;
+  sale_price?: string;
 
   @Field(() => Int, { description: 'Teacher ID as stringified BigInt' })
   teacher_id: number;

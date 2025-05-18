@@ -8,17 +8,17 @@ import { PrismaService } from 'src/prisma.service';
 export class CoursesService {
   constructor(private prisma: PrismaService) {}
   async create(createCourseInput: CreateCourseInput): Promise<CreateCourseResponse> {
-    console.log(createCourseInput)
+
     try {
         const newCourse = await this.prisma.sa_courses.create({
           data: {
             course_name: createCourseInput.course_name,
             real_price: createCourseInput.real_price,
-            prev_price: createCourseInput.prev_price,
-            teacher_id: BigInt(createCourseInput.teacher_id),
-            user_id: createCourseInput.user_id ? BigInt(createCourseInput.user_id) : null,
-            academiy_id: createCourseInput.academiy_id ? BigInt(createCourseInput.academiy_id) : null,
-            course_type_id: createCourseInput.course_type_id ? BigInt(createCourseInput.course_type_id) : null,
+            sale_price: createCourseInput.sale_price,
+            teacher_id: Number(createCourseInput.teacher_id),
+            user_id: createCourseInput.user_id ? Number(createCourseInput.user_id) : null,
+            academiy_id: createCourseInput.academiy_id ? Number(createCourseInput.academiy_id) : null,
+            category_id: createCourseInput.course_type_id ? Number(createCourseInput.course_type_id) : null,
           }
         })
         if(newCourse) {
@@ -32,8 +32,15 @@ export class CoursesService {
     }
   }
 
-  findAll() {
-    return `This action returns all courses`;
+ async findTeacherCourses() {
+  try {
+    
+    return await this.prisma.sa_courses.findMany({
+      
+    })
+  } catch (error) {
+    throw new BadRequestException(error)
+  }
   }
 
   findOne(id: number) {

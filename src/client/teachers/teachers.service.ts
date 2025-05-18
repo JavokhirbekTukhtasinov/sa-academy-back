@@ -11,6 +11,7 @@ export class TeachersService {
     private prisma: PrismaService,
     private uploadService: UploadService
   ){}
+  
   async create(createTeacherInput: CreateTeacherInput): Promise<CreateTeacherResponse> {
     try {
 
@@ -19,10 +20,11 @@ export class TeachersService {
           email: createTeacherInput.email
         }
       })
+
       if(existingTeacher) {
         throw new BadRequestException('Teacher already exists with this email');
       }
-      const image  = await this.uploadService.uploadFromGraphQL((await createTeacherInput.image), 'image');
+      const image  = await this.uploadService.uploadFromGraphQL((await createTeacherInput.image), 'image', `teacher_images/${createTeacherInput.first_name}-${createTeacherInput.last_name}`);
 
       const password = await generatePasswordHash(createTeacherInput.password);
       const newTeacher = await this.prisma.sa_teachers.create({
@@ -33,12 +35,12 @@ export class TeachersService {
           email: createTeacherInput.email,
           image: image?.url,
           password: password,
-          academy_id: createTeacherInput.academy_id ? BigInt(createTeacherInput.academy_id) : null,
+          academy_id: createTeacherInput.academy_id ? Number(createTeacherInput.academy_id) : null,
         }
       })
       if(newTeacher) {
         for(let i = 0; i < (await createTeacherInput.teacher_files).length; i++) {
-          const file = await this.uploadService.uploadFromGraphQL((await createTeacherInput.teacher_files[i]), 'file');
+          const file = await this.uploadService.uploadFromGraphQL((await createTeacherInput.teacher_files[i]), 'file', `teacher_files/teacher-${newTeacher.id}-${i}`);
           await this.prisma.sa_teacher_files.create({
             data: {
               file_url: file?.url,
