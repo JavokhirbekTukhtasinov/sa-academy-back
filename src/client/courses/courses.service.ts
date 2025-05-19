@@ -2,6 +2,8 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCourseInput, CreateCourseResponse } from './dto/create-course.input';
 import { UpdateCourseInput } from './dto/update-course.input';
 import { PrismaService } from 'src/prisma.service';
+import { paginate } from 'prisma-paginator';
+import { createPaginator } from 'prisma-pagination';
 
 
 @Injectable()
@@ -32,12 +34,25 @@ export class CoursesService {
     }
   }
 
- async findTeacherCourses() {
+ async findTeacherCourses(user: any, page: number, perPage: number, search: string) {
   try {
-    
-    return await this.prisma.sa_courses.findMany({
+    const paginator = createPaginator({
+      perPage: perPage || 10,
+      page: page || 1
+    });
       
-    })
+    const result = await paginator(this.prisma.sa_courses, {
+      where: {
+        teacher_id: user.id,
+        course_name: {
+          contains: search
+        }
+      },
+      orderBy: {
+        created_at: 'desc'
+      }
+    });
+    return result
   } catch (error) {
     throw new BadRequestException(error)
   }

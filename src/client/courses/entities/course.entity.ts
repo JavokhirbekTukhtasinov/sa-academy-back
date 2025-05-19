@@ -1,7 +1,7 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { GraphQLTime } from 'graphql-scalars';
 import { Academy } from 'src/client/academies/entities/academy.entity';
-import { Category } from 'src/client/entities/common.entities';
+import { Category, PaginationMeta } from 'src/client/entities/common.entities';
 import { Lecture } from 'src/client/lectures/entities/lecture.entity';
 import { Teacher } from 'src/client/teachers/entities/teacher.entity';
 import { User, UserCourses, UserFeadbacks, UserPayment } from 'src/client/users/entities/user.entity';
@@ -67,6 +67,11 @@ export class Course {
 
 
 
+@ObjectType()
+export class PaginatedCourses {
+  @Field(() => [Course])
+  data: Course[];
 
-
-
+  @Field(() => PaginationMeta)
+  meta: PaginationMeta;
+}

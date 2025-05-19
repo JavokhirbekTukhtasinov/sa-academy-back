@@ -31,10 +31,10 @@ export class UploadService {
     return { uploadUrl, key };
   }
 
-  async uploadFromGraphQL(file: FileUpload, type: 'image' | 'file') {
+  async uploadFromGraphQL(file: FileUpload, type: 'image' | 'file', destination: string) {
     try {
     const { createReadStream, filename, mimetype } = file;
-    const key = `${type}s/${filename}`;
+    const key = `${type}s/${destination}-${filename}`;
     const stream = createReadStream();
 
     if (!stream || typeof stream.pipe !== 'function') {

@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { CoursesService } from './courses.service';
-import { Course } from './entities/course.entity';
+import { Course, PaginatedCourses } from './entities/course.entity';
 import { CreateCourseInput, CreateCourseResponse } from './dto/create-course.input';
 import { UpdateCourseInput } from './dto/update-course.input';
 import { UseGuards } from '@nestjs/common';
@@ -18,11 +18,12 @@ export class CoursesResolver {
     return this.coursesService.create(createCourseInput);
   }
 
-  @UseGuards(AuthGuard)
-  @Query(() => [Course], { name: 'courses' })
-  // @Roles('TEACHER')
-  getTeacherCourses(@CurrentUser() user: any) {
-    return this.coursesService.findTeacherCourses();
+  @UseGuards(AuthGuard, RolesGuard)
+  @Query(() => PaginatedCourses)
+  @Roles('TEACHER')
+  getTeacherCourses(@CurrentUser() user: any, @Args('page', { type: () => Int, nullable: true }) page: number, @Args('perPage', { type: () => Int, nullable: true }) perPage: number, @Args('search', { type: () => String , nullable: true}) search: string) {
+    console.log(page, perPage, search);
+    return this.coursesService.findTeacherCourses(user, page, perPage, search);
   }
 
   @Query(() => Course, { name: 'course' })

@@ -51,3 +51,14 @@ export class SubCategory {
     @Field(() => Category, { nullable: true })
     sa_categories?: Category 
 }
+
+
+@ObjectType()
+export class PaginationMeta {
+  @Field(() => Int) total: number;
+  @Field(() => Int) lastPage: number;
+  @Field(() => Int) currentPage: number;
+  @Field(() => Int) perPage: number;
+  @Field(() => Int, { nullable: true }) prev?: number;
+  @Field(() => Int, { nullable: true }) next?: number;
+}

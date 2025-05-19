@@ -2,13 +2,22 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import {graphqlUploadExpress} from 'graphql-upload';
-
+import * as cookieParser from 'cookie-parser';
 const PORT = process.env.PORT || 8080;
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(cookieParser());
   app.enableCors({
-    origin: '*',
+    origin: (origin, callback) => {
+      const allowedOrigins = ['http://localhost:3000',"http://localhost:3001", "electron://altair", 'http://localhost:8080', 'https://ustozhub.com'];
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
     preflightContinue: false,
     optionsSuccessStatus: 204
   })

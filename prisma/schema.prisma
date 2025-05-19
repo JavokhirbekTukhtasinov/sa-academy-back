@@ -10,30 +10,8 @@ datasource db {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model sa_academies {
-  id                 BigInt              @id @default(autoincrement())
-  created_at         DateTime            @default(now()) @db.Timestamptz(6)
-  name               String?
-  location           String?
-  owner_name         String?
-  phone_number       String?
-  description        String?
-  email              String?
-  password           String?
-  amount_of_teachers Decimal?            @db.Decimal
-  academy_type_id    BigInt?
-  status             academy_status?     @default(PENDING)
-  sa_academy_types   sa_academy_types?   @relation(fields: [academy_type_id], references: [id], onUpdate: NoAction)
-  sa_academy_files   sa_academy_files[]
-  sa_academy_images  sa_academy_images[]
-  sa_courses         sa_courses[]
-  sa_teachers        sa_teachers[]
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_admins {
-  id         BigInt   @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   created_at DateTime @default(now()) @db.Timestamptz(6)
   first_name String?
   last_name  String?
@@ -44,29 +22,30 @@ model sa_admins {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model sa_course_types {
-  id                  BigInt                @id @default(autoincrement())
+model sa_categories {
+  id                  Int                   @id @default(autoincrement())
   created_at          DateTime              @default(now()) @db.Timestamptz(6)
   name                String?               @unique
-  sa_course_sub_types sa_course_sub_types[]
+  sa_sub_categories   sa_sub_categories[]
   sa_courses          sa_courses[]
+  sa_academies        sa_categories_on_academies[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_courses {
-  id                BigInt              @id @default(autoincrement())
+  id                Int                 @id @default(autoincrement())
   created_at        DateTime            @default(now()) @db.Timestamptz(6)
   course_name       String?
   real_price        Decimal?            @db.Decimal
-  prev_price        Decimal?            @db.Decimal
-  teacher_id        BigInt?
-  user_id           BigInt?
+  sale_price        Decimal?            @db.Decimal
+  teacher_id        Int?
+  user_id           Int?
   thumbnail         String?
-  academiy_id       BigInt?
-  course_type_id    BigInt?
+  academiy_id       Int?
+  category_id       Int?
   sa_academies      sa_academies?       @relation(fields: [academiy_id], references: [id])
-  sa_course_types   sa_course_types?    @relation(fields: [course_type_id], references: [id])
+  sa_categories     sa_categories?      @relation(fields: [category_id], references: [id])
   sa_teachers       sa_teachers?        @relation(fields: [teacher_id], references: [id])
   sa_users          sa_users?           @relation(fields: [user_id], references: [id])
   sa_lectures       sa_lectures[]
@@ -78,22 +57,22 @@ model sa_courses {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_lecture_files {
-  id          BigInt       @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   created_at  DateTime     @default(now()) @db.Timestamptz(6)
   file_name   String?
   file_url    String?
-  lecture_id  BigInt?
+  lecture_id  Int?
   sa_lectures sa_lectures? @relation(fields: [lecture_id], references: [id], onDelete: Cascade)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_lecture_progress {
-  id                BigInt       @id @default(autoincrement())
+  id                Int          @id @default(autoincrement())
   created_at        DateTime     @default(now()) @db.Timestamptz(6)
-  progress          Int?         @default(0) @db.SmallInt
-  lecture_id        BigInt?
-  user_id           BigInt?
+  progress          Float?       @db.Real
+  lecture_id        Int?
+  user_id           Int?
   last_watched_date DateTime?    @db.Timestamptz(6)
   sa_lectures       sa_lectures? @relation(fields: [lecture_id], references: [id], onDelete: Cascade)
   sa_users          sa_users?    @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -101,11 +80,11 @@ model sa_lecture_progress {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model sa_lectures {
-  id                       BigInt                     @id @default(autoincrement())
+  id                       Int                        @id @default(autoincrement())
   created_at               DateTime                   @default(now()) @db.Timestamptz(6)
   name                     String?
   description              String?
-  course_id                BigInt?
+  course_id                Int?
   lecture_main_video       String?
   sa_lecture_files         sa_lecture_files[]
   sa_lecture_progress      sa_lecture_progress[]
@@ -116,7 +95,7 @@ model sa_lectures {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_teachers {
-  id               BigInt             @id @default(autoincrement())
+  id               Int                @id @default(autoincrement())
   created_at       DateTime           @default(now()) @db.Timestamptz(6)
   first_name       String?
   last_name        String?
@@ -124,7 +103,7 @@ model sa_teachers {
   full_name        String?
   is_verified      Boolean?           @default(false)
   otp              String?
-  academy_id       BigInt?
+  academy_id       Int?
   password         String
   image            String?
   sa_courses       sa_courses[]
@@ -135,10 +114,10 @@ model sa_teachers {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_user_courses {
-  id         BigInt      @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   created_at DateTime    @default(now()) @db.Timestamptz(6)
-  user_id    BigInt?
-  course_id  BigInt?
+  user_id    Int?
+  course_id  Int?
   sa_courses sa_courses? @relation(fields: [course_id], references: [id], onDelete: Cascade)
   sa_users   sa_users?   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
@@ -146,10 +125,10 @@ model sa_user_courses {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_user_feadbacks {
-  id         BigInt      @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   created_at DateTime    @default(now()) @db.Timestamptz(6)
-  user_id    BigInt?
-  course_id  BigInt?
+  user_id    Int?
+  course_id  Int?
   content    String?
   rate       Int?        @db.SmallInt
   sa_courses sa_courses? @relation(fields: [course_id], references: [id], onDelete: Cascade)
@@ -159,10 +138,10 @@ model sa_user_feadbacks {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_user_payments {
-  id         BigInt      @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   created_at DateTime    @default(now()) @db.Timestamptz(6)
-  user_id    BigInt?
-  course_id  BigInt?
+  user_id    Int?
+  course_id  Int?
   sa_courses sa_courses? @relation(fields: [course_id], references: [id])
   sa_users   sa_users?   @relation(fields: [user_id], references: [id])
 }
@@ -170,7 +149,7 @@ model sa_user_payments {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_users {
-  id                       BigInt                     @id @default(autoincrement())
+  id                       Int                        @id @default(autoincrement())
   created_at               DateTime                   @default(now()) @db.Timestamptz(6)
   fullname                 String?
   first_name               String?
@@ -190,22 +169,29 @@ model sa_users {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_academy_files {
-  id           BigInt        @id @default(autoincrement())
+  id           Int           @id @default(autoincrement())
   created_at   DateTime      @default(now()) @db.Timestamptz(6)
   file_name    String?
   file_url     String?
   is_hidden    Boolean?      @default(false)
-  academy_id   BigInt?
+  academy_id   Int?
   sa_academies sa_academies? @relation(fields: [academy_id], references: [id], onDelete: Cascade)
 }
 
+model sa_categories_on_academies {
+  academy_id Int
+  type_id Int
+  sa_academy  sa_academies? @relation(fields: [academy_id], references: [id], onDelete: SetNull, onUpdate: SetNull, map: "fk_academy_to_types")
+  sa_category sa_categories? @relation(fields: [academy_id], references: [id], onDelete: SetNull)
+  @@id([academy_id, type_id])
+}
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_academy_images {
-  id           BigInt        @id @default(autoincrement())
+  id           Int           @id @default(autoincrement())
   created_at   DateTime      @default(now()) @db.Timestamptz(6)
   file_name    String?
-  academy_id   BigInt?
+  academy_id   Int?
   image_url    String?
   is_main      Boolean?      @default(false)
   sa_academies sa_academies? @relation(fields: [academy_id], references: [id], onDelete: Cascade)
@@ -213,32 +199,45 @@ model sa_academy_images {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model sa_academy_types {
-  id           BigInt         @id @default(autoincrement())
-  created_at   DateTime       @default(now()) @db.Timestamptz(6)
-  name         String?        @unique
-  sa_academies sa_academies[]
+model sa_academies {
+  id                 Int                 @id @default(autoincrement())
+  created_at         DateTime            @default(now()) @db.Timestamptz(6)
+  name               String?
+  location           String?
+  owner_name         String?
+  phone_number       String?
+  description        String?
+  email              String?
+  password           String?
+  amount_of_teachers Decimal?            @db.Decimal
+  academy_type_id    Int?
+  status             academy_status?     @default(PENDING)
+  sa_categories      sa_categories_on_academies[]
+  sa_academy_files   sa_academy_files[]
+  sa_academy_images  sa_academy_images[]
+  sa_courses         sa_courses[]
+  sa_teachers        sa_teachers[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_teacher_files {
-  id          BigInt       @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   created_at  DateTime     @default(now()) @db.Timestamptz(6)
   file_name   String?
   file_url    String?
-  teacher_id  BigInt?
+  teacher_id  Int?
   sa_teachers sa_teachers? @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_user_lecture_progress {
-  id           BigInt       @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   created_at   DateTime     @default(now()) @db.Timestamptz(6)
   current_time Float?       @db.Real
-  user_id      BigInt?
-  lecture_id   BigInt?
+  user_id      Int?
+  lecture_id   Int?
   is_completed Boolean?     @default(false)
   updated_at   DateTime?    @db.Timestamptz(6)
   sa_lectures  sa_lectures? @relation(fields: [lecture_id], references: [id], onDelete: Cascade)
@@ -247,12 +246,12 @@ model sa_user_lecture_progress {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model sa_course_sub_types {
-  id              BigInt           @id @default(autoincrement())
+model sa_sub_categories {
+  id              Int              @id @default(autoincrement())
   created_at      DateTime         @default(now()) @db.Timestamptz(6)
   name            String?
-  parent_type_id  BigInt?
-  sa_course_types sa_course_types? @relation(fields: [parent_type_id], references: [id], onDelete: Cascade)
+  parent_type_id  Int?
+  sa_categories sa_categories? @relation(fields: [parent_type_id], references: [id], onDelete: Cascade)
 }
 
 /// This enum is commented in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments

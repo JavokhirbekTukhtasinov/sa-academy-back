@@ -2,31 +2,144 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Auth {
+type Category {
+  id: Int!
+  created_at: Date!
+  name: String!
+  sa_sub_categories: [SubCategory!]
+  sa_courses: [Course!]
+  sa_academies: [Academy!]
+}
+
+"""
+A date string, such as 2007-12-03, compliant with the `full-date` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+"""
+scalar Date
+
+type SubCategory {
+  id: Int!
+  created_at: Date!
+  name: String!
+  parent_type_id: Int
+  sa_categories: Category
+}
+
+type PaginationMeta {
+  total: Int!
+  lastPage: Int!
+  currentPage: Int!
+  perPage: Int!
+  prev: Int
+  next: Int
+}
+
+type Lecture {
   """Example field (placeholder)"""
   exampleField: Int!
-}
-
-type verifyOTPresponse {
-  message: String!
-}
-
-type SignUpresponse {
-  message: String!
-}
-
-type userLoginResponse {
-  access_token: String!
-  refresh_token: String!
-}
-
-type Course {
-  id: Int!
 }
 
 type Teacher {
   """Example field (placeholder)"""
-  exampleField: Int!
+  id: Int!
+
+  """Example field (placeholder)"""
+  created_at: DateTime!
+
+  """Example field (placeholder)"""
+  first_name: String!
+
+  """Example field (placeholder)"""
+  last_name: String!
+
+  """Example field (placeholder)"""
+  email: String!
+
+  """Example field (placeholder)"""
+  full_name: String
+
+  """Example field (placeholder)"""
+  is_verified: String!
+
+  """Example field (placeholder)"""
+  otp: String!
+
+  """Example field (placeholder)"""
+  academy_id: Int!
+
+  """Example field (placeholder)"""
+  image: String!
+  sa_academies: Academy
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type User {
+  id: Int!
+  name: String!
+  email: String!
+}
+
+type UserCourses {
+  id: Int!
+  created_at: Date!
+  user_id: Int
+  course_id: Int
+  sa_courses: Course
+  sa_users: User
+}
+
+type UserFeadbacks {
+  id: Int!
+  created_at: Date!
+  user_id: Int
+  course_id: Int
+  content: String
+  rate: Int
+  sa_courses: Course
+  sa_users: User
+}
+
+type UserPayment {
+  id: Int!
+  created_at: Date!
+  user_id: Int
+  course_id: Int
+  sa_courses: Course
+  sa_users: User
+}
+
+type Course {
+  id: Int!
+  created_at: Time!
+  course_name: String!
+  real_price: Int!
+  sale_price: Int!
+  teacher_id: Int
+  user_id: Int
+  thumbnail: String
+  academiy_id: Int
+  category_id: Int
+  sa_academies: Academy
+  sa_categories: Category
+  sa_teachers: Teacher
+  sa_users: User
+  sa_lectures: Lecture
+  sa_user_courses: [UserCourses!]
+  sa_user_feadbacks: [UserFeadbacks!]
+  sa_user_payments: [UserPayment!]
+}
+
+"""
+A time string at UTC, such as 10:15:30Z, compliant with the `full-time` format outlined in section 5.6 of the RFC 3339profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+"""
+scalar Time
+
+type PaginatedCourses {
+  data: [Course!]!
+  meta: PaginationMeta!
 }
 
 type AcademyType {
@@ -38,17 +151,12 @@ type AcademyType {
   sa_academies: [Academy!]
 }
 
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
-
 type Academy {
   id: Int
   created_at: DateTime
 
   """Academy name"""
-  name: DateTime!
+  name: ID!
 
   """Academy location"""
   location: String!
@@ -66,10 +174,10 @@ type Academy {
   email: String!
 
   """Academy amount of teachers"""
-  amount_of_teachers: Int!
+  amount_of_teachers: Int
 
   """Academy amount of students"""
-  academy_type_id: Int!
+  academy_type_id: Int
 
   """Academy status"""
   status: AcademyStatus
@@ -106,6 +214,40 @@ type AcademyImage {
   sa_academies: Academy
 }
 
+"""academy categories"""
+type AcademyCategories {
+  id: BigInt!
+  created_at: DateTime!
+  name: String!
+  sa_academies: [Academy!]
+}
+
+"""
+The `BigInt` scalar type represents non-fractional signed whole numeric values.
+"""
+scalar BigInt
+
+type Auth {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+type verifyOTPresponse {
+  message: String!
+}
+
+type SignUpresponse {
+  message: String!
+}
+
+type userLoginResponse {
+  access_token: String!
+  refresh_token: String!
+  user: userUnion!
+}
+
+union userUnion = User | Teacher | Academy
+
 type createAcademyInputResponse {
   message: String!
 }
@@ -114,19 +256,8 @@ type CreateTeacherResponse {
   message: String
 }
 
-type User {
-  id: Int!
-  name: String!
-  email: String!
-}
-
 type CreateCourseResponse {
   message: String
-}
-
-type Lecture {
-  """Example field (placeholder)"""
-  exampleField: Int!
 }
 
 type Query {
@@ -135,9 +266,10 @@ type Query {
   user(id: Int!): User!
   academies: [Academy!]!
   academy(id: Int!): Academy!
+  academyCategories: [AcademyCategories!]!
   teachers: [Teacher!]!
   teacher(id: Int!): Teacher!
-  courses: [Course!]!
+  getTeacherCourses(page: Int, perPage: Int, search: String): PaginatedCourses!
   course(id: Int!): Course!
   lectures: [Lecture!]!
   lecture(id: Int!): Lecture!
@@ -147,9 +279,10 @@ type Mutation {
   signup(createAuthInput: SignUpInput!): SignUpresponse!
   createAuth(createAuthInput: CreateAuthInput!): Auth!
   verifyOTP(verifyOTPInput: verifyOTPInput!): verifyOTPresponse!
-  userLogin(userLoginInput: userLoginInput!): userLoginResponse!
+  login(loginInput: LoginInput!): userLoginResponse!
   updateAuth(updateAuthInput: UpdateAuthInput!): Auth!
   removeAuth(id: Int!): Auth!
+  refreshToken: String!
   createUser(createUserInput: CreateUserInput!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: Int!): User!
@@ -190,9 +323,12 @@ input verifyOTPInput {
   email: String!
 }
 
-input userLoginInput {
+input LoginInput {
   email: String!
   password: String!
+
+  """send login role(ADMIN, TEACHER, STUDENT, ACADEMY)"""
+  role: String!
 }
 
 input UpdateAuthInput {
@@ -334,7 +470,7 @@ input UpdateTeacherInput {
 input CreateCourseInput {
   course_name: String
   real_price: String
-  prev_price: String
+  sale_price: String
 
   """Teacher ID as stringified BigInt"""
   teacher_id: Int!
@@ -355,7 +491,7 @@ input CreateCourseInput {
 input UpdateCourseInput {
   course_name: String
   real_price: String
-  prev_price: String
+  sale_price: String
 
   """Teacher ID as stringified BigInt"""
   teacher_id: Int
