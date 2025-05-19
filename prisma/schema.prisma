@@ -181,10 +181,11 @@ model sa_academy_files {
 model sa_categories_on_academies {
   academy_id Int
   type_id Int
-  sa_academy  sa_academies? @relation(fields: [academy_id], references: [id], onDelete: SetNull, onUpdate: SetNull, map: "fk_academy_to_types")
-  sa_category sa_categories? @relation(fields: [academy_id], references: [id], onDelete: SetNull)
+  sa_academy  sa_academies? @relation(fields: [academy_id], references: [id], map: "fk_academy_to_types")
+  sa_category sa_categories? @relation(fields: [academy_id], references: [id])
   @@id([academy_id, type_id])
 }
+
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_academy_images {
