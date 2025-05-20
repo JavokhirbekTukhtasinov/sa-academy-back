@@ -23,12 +23,12 @@ model sa_admins {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_categories {
-  id                  Int                   @id @default(autoincrement())
-  created_at          DateTime              @default(now()) @db.Timestamptz(6)
-  name                String?               @unique
-  sa_sub_categories   sa_sub_categories[]
-  sa_courses          sa_courses[]
-  sa_academies        sa_categories_on_academies[]
+  id                         Int                          @id @default(autoincrement())
+  created_at                 DateTime                     @default(now()) @db.Timestamptz(6)
+  name                       String?                      @unique
+  sa_categories_on_academies sa_categories_on_academies[]
+  sa_courses                 sa_courses[]
+  sa_sub_categories          sa_sub_categories[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -38,12 +38,12 @@ model sa_courses {
   created_at        DateTime            @default(now()) @db.Timestamptz(6)
   course_name       String?
   real_price        Decimal?            @db.Decimal
-  sale_price        Decimal?            @db.Decimal
   teacher_id        Int?
   user_id           Int?
   thumbnail         String?
   academiy_id       Int?
   category_id       Int?
+  sale_price        Decimal?            @db.Decimal
   sa_academies      sa_academies?       @relation(fields: [academiy_id], references: [id])
   sa_categories     sa_categories?      @relation(fields: [category_id], references: [id])
   sa_teachers       sa_teachers?        @relation(fields: [teacher_id], references: [id])
@@ -179,10 +179,11 @@ model sa_academy_files {
 }
 
 model sa_categories_on_academies {
-  academy_id Int
-  type_id Int
-  sa_academy  sa_academies? @relation(fields: [academy_id], references: [id], map: "fk_academy_to_types")
-  sa_category sa_categories? @relation(fields: [academy_id], references: [id])
+  academy_id    Int
+  type_id       Int
+  sa_category   sa_academies  @relation(fields: [academy_id], references: [id], map: "fk_category_to_category_2")
+  sa_categories sa_categories @relation(fields: [type_id], references: [id], onDelete: NoAction)
+
   @@id([academy_id, type_id])
 }
 
@@ -201,8 +202,8 @@ model sa_academy_images {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_academies {
-  id                 Int                 @id @default(autoincrement())
-  created_at         DateTime            @default(now()) @db.Timestamptz(6)
+  id                 Int                          @id @default(autoincrement())
+  created_at         DateTime                     @default(now()) @db.Timestamptz(6)
   name               String?
   location           String?
   owner_name         String?
@@ -210,12 +211,12 @@ model sa_academies {
   description        String?
   email              String?
   password           String?
-  amount_of_teachers Decimal?            @db.Decimal
+  amount_of_teachers Decimal?                     @db.Decimal
   academy_type_id    Int?
-  status             academy_status?     @default(PENDING)
-  sa_categories      sa_categories_on_academies[]
+  status             academy_status?              @default(PENDING)
   sa_academy_files   sa_academy_files[]
   sa_academy_images  sa_academy_images[]
+  sa_academies       sa_categories_on_academies[]
   sa_courses         sa_courses[]
   sa_teachers        sa_teachers[]
 }
@@ -248,11 +249,11 @@ model sa_user_lecture_progress {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_sub_categories {
-  id              Int              @id @default(autoincrement())
-  created_at      DateTime         @default(now()) @db.Timestamptz(6)
-  name            String?
-  parent_type_id  Int?
-  sa_categories sa_categories? @relation(fields: [parent_type_id], references: [id], onDelete: Cascade)
+  id             Int            @id @default(autoincrement())
+  created_at     DateTime       @default(now()) @db.Timestamptz(6)
+  name           String?
+  parent_type_id Int?
+  sa_categories  sa_categories? @relation(fields: [parent_type_id], references: [id], onDelete: Cascade)
 }
 
 /// This enum is commented in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
