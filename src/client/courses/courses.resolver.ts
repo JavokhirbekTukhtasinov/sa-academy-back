@@ -8,21 +8,22 @@ import { AuthGuard } from '../guards/gql-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { Roles } from '../decorators/oles.decorator';
+import { Category, CurrentUserProps, SubCategory } from '../entities/common.entities';
 
 @Resolver(() => Course)
 export class CoursesResolver {
   constructor(private readonly coursesService: CoursesService) {}
 
+ @UseGuards(AuthGuard)
   @Mutation(() => CreateCourseResponse)
-  createCourse(@Args('createCourseInput') createCourseInput: CreateCourseInput) {
-    return this.coursesService.create(createCourseInput);
+  createCourse(@CurrentUser() user:any, @Args('createCourseInput') createCourseInput: CreateCourseInput) {
+    return this.coursesService.create(createCourseInput, user);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @Query(() => PaginatedCourses)
   @Roles('TEACHER')
-  getTeacherCourses(@CurrentUser() user: any, @Args('page', { type: () => Int, nullable: true }) page: number, @Args('perPage', { type: () => Int, nullable: true }) perPage: number, @Args('search', { type: () => String , nullable: true}) search: string) {
-    console.log(page, perPage, search);
+  getTeacherCourses(@CurrentUser() user: CurrentUserProps, @Args('page', { type: () => Int, nullable: true }) page: number, @Args('perPage', { type: () => Int, nullable: true }) perPage: number, @Args('search', { type: () => String , nullable: true}) search: string) {
     return this.coursesService.findTeacherCourses(user, page, perPage, search);
   }
 
@@ -30,6 +31,17 @@ export class CoursesResolver {
   findOne(@Args('id', { type: () => Int }) id: number) {
     return this.coursesService.findOne(id);
   }
+
+ @Query(() => [Category], { name: 'categories' })
+  getCategories() {
+    return this.coursesService.getCategories();
+ }
+
+
+@Query(() =>[SubCategory], { name: 'subCategories' })
+  getSubCategories(@Args('id', { type: () => Int, nullable: true }) id: number) {
+    return this.coursesService.getSubCategories(id);
+ }
 
   @Mutation(() => Course)
   updateCourse(@Args('updateCourseInput') updateCourseInput: UpdateCourseInput) {

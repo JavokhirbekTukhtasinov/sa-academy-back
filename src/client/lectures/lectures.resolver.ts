@@ -1,17 +1,27 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { LecturesService } from './lectures.service';
-import { Lecture } from './entities/lecture.entity';
+import { CreateLectureResponse, Lecture } from './entities/lecture.entity';
 import { CreateLectureInput } from './dto/create-lecture.input';
 import { UpdateLectureInput } from './dto/update-lecture.input';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../guards/gql-auth.guard';
 
 @Resolver(() => Lecture)
 export class LecturesResolver {
   constructor(private readonly lecturesService: LecturesService) {}
 
-  @Mutation(() => Lecture)
-  createLecture(@Args('createLectureInput') createLectureInput: CreateLectureInput) {
+  @UseGuards(AuthGuard)
+  @Mutation(() => CreateLectureResponse)
+  createLecture(@Args('input') createLectureInput: CreateLectureInput) {
     return this.lecturesService.create(createLectureInput);
   }
+
+
+  // @UseGuards(AuthGuard)
+  // @Mutation()
+  // generateLectureKey(@Args('id', { type: () => Int }) id: number) {
+  //   return this.lecturesService.generateLectureKey(id);
+  // }
 
   @Query(() => [Lecture], { name: 'lectures' })
   findAll() {

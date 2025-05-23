@@ -20,8 +20,8 @@ export class UploadService {
     },
   });
 
-  async generateSignedVideoUrl(filename: string) {
-    const key = `videos/${uuid()}-${filename}`;
+  async generateSignedVideoUrl(filename: string, destination: string) {
+    const key = `${destination}-${filename}`;
     const command = new PutObjectCommand({
       Bucket: process.env.S3_BUCKET,
       Key: key,

@@ -38,6 +38,12 @@ type Lecture {
   exampleField: Int!
 }
 
+type CreateLectureResponse {
+  """lecture id"""
+  id: Int!
+  key: ID
+}
+
 type Teacher {
   """Example field (placeholder)"""
   id: Int!
@@ -127,6 +133,7 @@ type Course {
   sa_teachers: Teacher
   sa_users: User
   sa_lectures: Lecture
+  status: CourseStatus!
   sa_user_courses: [UserCourses!]
   sa_user_feadbacks: [UserFeadbacks!]
   sa_user_payments: [UserPayment!]
@@ -136,6 +143,13 @@ type Course {
 A time string at UTC, such as 10:15:30Z, compliant with the `full-time` format outlined in section 5.6 of the RFC 3339profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
 """
 scalar Time
+
+enum CourseStatus {
+  DRAFT
+  SUBMITTED_FOR_REVIEW
+  APPROVED
+  REJECTED
+}
 
 type PaginatedCourses {
   data: [Course!]!
@@ -258,6 +272,32 @@ type CreateTeacherResponse {
 
 type CreateCourseResponse {
   message: String
+  course_id: Int!
+}
+
+"""lectures attachements"""
+type Attachment {
+  id: Int!
+  created_at: Date!
+  file_name: String!
+  file_url: String!
+  lecture_id: Int!
+}
+
+type Admin {
+  id: Int!
+}
+
+type Banner {
+  """Example field (placeholder)"""
+  id: Int!
+  banner_link: String
+  open_new_window: Boolean
+  created_by: Int
+  image_mobile: String
+  image_desktop: String
+  created_at: Date!
+  sa_admins: Admin
 }
 
 type Query {
@@ -271,8 +311,12 @@ type Query {
   teacher(id: Int!): Teacher!
   getTeacherCourses(page: Int, perPage: Int, search: String): PaginatedCourses!
   course(id: Int!): Course!
+  categories: [Category!]!
+  subCategories(id: Int): [SubCategory!]!
   lectures: [Lecture!]!
   lecture(id: Int!): Lecture!
+  banners: [Banner!]!
+  banner(id: Int!): Banner!
 }
 
 type Mutation {
@@ -283,7 +327,6 @@ type Mutation {
   updateAuth(updateAuthInput: UpdateAuthInput!): Auth!
   removeAuth(id: Int!): Auth!
   refreshToken: String!
-  createUser(createUserInput: CreateUserInput!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: Int!): User!
   createAcademy(createAcademyInput: CreateAcademyInput!): createAcademyInputResponse!
@@ -295,9 +338,12 @@ type Mutation {
   createCourse(createCourseInput: CreateCourseInput!): CreateCourseResponse!
   updateCourse(updateCourseInput: UpdateCourseInput!): Course!
   removeCourse(id: Int!): Course!
-  createLecture(createLectureInput: CreateLectureInput!): Lecture!
+  createLecture(input: CreateLectureInput!): CreateLectureResponse!
   updateLecture(updateLectureInput: UpdateLectureInput!): Lecture!
   removeLecture(id: Int!): Lecture!
+  createBanner(input: CreateBannerInput!): Banner!
+  updateBanner(updateBannerInput: UpdateBannerInput!): Banner!
+  removeBanner(id: Int!): Banner!
 }
 
 input SignUpInput {
@@ -341,11 +387,6 @@ input UpdateAuthInput {
   """Example field (placeholder)"""
   role: ID
   id: Int!
-}
-
-input CreateUserInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
 }
 
 input UpdateUserInput {
@@ -471,27 +512,29 @@ input CreateCourseInput {
   course_name: String
   real_price: String
   sale_price: String
+  description: String
 
   """Teacher ID as stringified BigInt"""
-  teacher_id: Int!
+  teacher_id: Int
 
   """Optional user ID as stringified BigInt"""
   user_id: Int
 
   """Thumbnail image file"""
-  thumbnail: Upload
+  thumbnail: Upload!
 
   """Academy ID as stringified BigInt"""
   academiy_id: Int
 
   """Course type ID as stringified BigInt"""
-  course_type_id: Int
+  course_type_id: Int!
 }
 
 input UpdateCourseInput {
   course_name: String
   real_price: String
   sale_price: String
+  description: String
 
   """Teacher ID as stringified BigInt"""
   teacher_id: Int
@@ -512,11 +555,33 @@ input UpdateCourseInput {
 
 input CreateLectureInput {
   """Example field (placeholder)"""
-  exampleField: Int!
+  name: String!
+  description: String!
+  course_id: Int!
+  video_key: String
+  attachmentIds: [Int!]
 }
 
 input UpdateLectureInput {
-  """Example field (placeholder)"""
-  exampleField: Int
+  name: String
+  description: String
+  course_id: Int
+  video_key: String
+  attachmentIds: [Int!]
+  id: Int!
+}
+
+input CreateBannerInput {
+  image_desktop: Upload!
+  image_mobile: Upload!
+  banner_link: String!
+  open_new_window: Boolean = true
+}
+
+input UpdateBannerInput {
+  image_desktop: Upload
+  image_mobile: Upload
+  banner_link: String
+  open_new_window: Boolean = true
   id: Int!
 }

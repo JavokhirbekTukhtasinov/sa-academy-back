@@ -1,7 +1,6 @@
 import { InputType, Field, Int, ObjectType } from '@nestjs/graphql';
 import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 import { GraphQLUpload, FileUpload } from 'graphql-upload';
-import { Upload } from 'src/scalers/upload.scaler';
 
 @InputType()
 export class CreateTeacherInput {

@@ -283,14 +283,40 @@ async adminLogin(userLoginInput: LoginInput) {
 
 
 async refresh(token: string): Promise<{ access_token: string; new_refresh_token: string; user: any }> {
-  const payload = this.jwtService.verify(token);
-  const user = await this.prisma.sa_users.findUnique({ where: { id: payload.sub } });
-  if (!user) throw new UnauthorizedException();
+  try {
 
-  const access_token = this.jwtService.sign({ sub: user.id }, { expiresIn: '15m' });
-  const new_refresh_token = this.jwtService.sign({ sub: user.id }, { expiresIn: '7d' });
+  
+  const payload = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
+  console.log('payload',payload)
+  let user:any = {}
+
+if(payload.role === 'ADMIN') {
+  user = await this.prisma.sa_admins.findUnique({ where: { id: payload.id } });
+  if (!user) throw new UnauthorizedException();
+}else if(payload.role === 'ACADEMY') {
+  user = await this.prisma.sa_academies.findUnique({ where: { id: payload.id } });
+  if (!user) throw new UnauthorizedException();
+}else if(payload.role === 'TEACHER') {
+  user = await this.prisma.sa_teachers.findUnique({ where: { id: payload.id } });
+  if (!user) throw new UnauthorizedException();
+}else if(payload.role === 'STUDENT') {
+  user = await this.prisma.sa_users.findUnique({ where: { id: payload.id } });
+  if (!user) throw new UnauthorizedException();
+}
+const newPayload = {
+  id: payload.id,
+  email: payload.email,
+  role: payload.role
+}
+  // const access_token = this.jwtService.sign(payload, { expiresIn: '15m' });
+  // const new_refresh_token = this.jwtService.sign(payload, { expiresIn: '7d' });
+  const access_token = await this.generateAccessToken(newPayload); 
+  const new_refresh_token = await this.generateRefreshToken(newPayload);
 
   return { access_token, new_refresh_token, user };
+}catch (error) {
+  throw new BadRequestException(error);
+}
 }
 
   create(createAuthInput: CreateAuthInput) {

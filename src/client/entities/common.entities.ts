@@ -5,6 +5,15 @@ import { Academy } from "../academies/entities/academy.entity";
 
 
 
+
+export interface CurrentUserProps {
+  id: number,
+  email: string,
+  role: "STUDENT" | "TEACHER" | "ACADEMY" | "ADMIN"
+}
+
+
+
 @ObjectType()
 export class Category {
 
@@ -18,7 +27,6 @@ export class Category {
     name: string
 
     @Field(() => [SubCategory], { nullable: true })
-
 
     @Field(() => [SubCategory], { nullable: true })
     sa_sub_categories?: SubCategory[]
@@ -62,3 +70,4 @@ export class PaginationMeta {
   @Field(() => Int, { nullable: true }) prev?: number;
   @Field(() => Int, { nullable: true }) next?: number;
 }
+

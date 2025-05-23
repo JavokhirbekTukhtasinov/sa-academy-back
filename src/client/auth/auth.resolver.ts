@@ -30,6 +30,7 @@ export class AuthResolver {
     const user = await this.authService.login(LoginInput);
     const {res} = context;
 
+
     res.cookie('role', LoginInput.role, {
       httpOnly: false,
       maxAge: 15 * 60 * 1000, // match access token
@@ -74,9 +75,24 @@ export class AuthResolver {
 
 
   @Mutation(() => String)
-  async refreshToken(@Context() context, @Res({ passthrough: true }) res: Response) {
+  async refreshToken(@Context() context) {
     const refresh_token = context.req.cookies['refresh_token'];
+    console.log('refresh token',refresh_token)
+    const {res} = context
     const { access_token, new_refresh_token, user } = await this.authService.refresh(refresh_token);
+
+    res.cookie('role', user.role, {
+      httpOnly: false,
+      maxAge: 15 * 60 * 1000, // match access token
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    })
+    res.cookie('access_token', access_token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 15 * 60 * 1000, // 15 mins
+    });
 
     res.cookie('refresh_token', new_refresh_token, {
       httpOnly: true,

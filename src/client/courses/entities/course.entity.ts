@@ -1,4 +1,4 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { ObjectType, Field, Int, registerEnumType } from '@nestjs/graphql';
 import { GraphQLTime } from 'graphql-scalars';
 import { Academy } from 'src/client/academies/entities/academy.entity';
 import { Category, PaginationMeta } from 'src/client/entities/common.entities';
@@ -54,6 +54,8 @@ export class Course {
   @Field(() => Lecture, { nullable: true })
   sa_lectures       ?:Lecture[]
 
+  @Field(() => CourseStatus, { nullable: false })
+  status: CourseStatus
 
   @Field(() => [UserCourses], { nullable: true })
   sa_user_courses   ?:UserCourses[]
@@ -75,3 +77,16 @@ export class PaginatedCourses {
   @Field(() => PaginationMeta)
   meta: PaginationMeta;
 }
+
+
+export enum CourseStatus {
+  DRAFT = "DRAFT",
+  SUBMITTED_FOR_REVIEW = "SUBMITTED_FOR_REVIEW",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
+}
+
+registerEnumType(CourseStatus, {
+  name: "CourseStatus",
+});
+

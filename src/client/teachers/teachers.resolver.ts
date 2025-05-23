@@ -3,6 +3,12 @@ import { TeachersService } from './teachers.service';
 import { Teacher } from './entities/teacher.entity';
 import { CreateTeacherInput, CreateTeacherResponse } from './dto/create-teacher.input';
 import { UpdateTeacherInput } from './dto/update-teacher.input';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../guards/gql-auth.guard';
+import { RolesGuard } from '../guards/roles.guard';
+import { Roles } from '../decorators/oles.decorator';
+import { CurrentUser } from '../decorators/current-user.decorator';
+import { CurrentUserProps } from '../entities/common.entities';
 
 @Resolver(() => Teacher)
 export class TeachersResolver {
@@ -18,7 +24,6 @@ export class TeachersResolver {
   findAll() {
     return this.teachersService.findAll();
   }
-
 
   @Query(() => Teacher, { name: 'teacher' })
   findOne(@Args('id', { type: () => Int }) id: number) {
