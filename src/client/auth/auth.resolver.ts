@@ -3,10 +3,18 @@ import { AuthService } from './auth.service';
 import { Auth, LoginInput, SignUpInput, SignUpresponse,  userLoginResponse, verifyOTPInput, verifyOTPresponse } from './entities/auth.entity';
 import { CreateAuthInput } from './dto/create-auth.input';
 import { UpdateAuthInput } from './dto/update-auth.input';
-import { Res } from '@nestjs/common';
-import { Response } from 'express';
+// Removed Res and Response as they are not used in the GraphQL context directly for cookies in new mutations
+// import { Res } from '@nestjs/common';
+// import { Response } from 'express';
+import { UseGuards } from '@nestjs/common';
+import { GoogleAuthGuard } from '../guards/google-auth.guard'; // To be created
+import { TelegramAuthGuard } from '../guards/telegram-auth.guard'; // To be created
+// Assuming GqlAuthGuard might be used elsewhere or for context, but not directly in these new mutations unless for @CurrentUser()
+// import { GqlAuthGuard } from '../guards/gql-auth.guard'; 
+import { GoogleLoginInput, TelegramLoginInput } from './entities/social-auth.entities';
 
-@Resolver(() => Auth)
+
+@Resolver(() => Auth) // Consider changing () => Auth if Auth is not the primary return type of all resolvers
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
@@ -76,8 +84,10 @@ export class AuthResolver {
 
   @Mutation(() => String)
   async refreshToken(@Context() context) {
-    const refresh_token = context.req.cookies['refresh_token'];
-    console.log('refresh token',refresh_token)
+    // Ensure context.req exists; for pure GraphQL, it might be context.request
+    const req = context.req || context.request;
+    const refresh_token = req.cookies['refresh_token'];
+    console.log('refresh token', refresh_token);
     const {res} = context
     const { access_token, new_refresh_token, user } = await this.authService.refresh(refresh_token);
 
@@ -102,5 +112,107 @@ export class AuthResolver {
     });
 
     return access_token;
+  }
+
+  // New Social Login Mutations
+
+  @Mutation(() => userLoginResponse, { name: 'loginWithGoogle' })
+  @UseGuards(GoogleAuthGuard)
+  async loginWithGoogle(@Context() context): Promise<userLoginResponse> {
+    // The GoogleAuthGuard and GoogleStrategy handle user authentication.
+    // The validate method in GoogleStrategy returns the user object.
+    // This user object is available on context.req.user.
+    // AuthService.validateGoogleUser (called by strategy) returns tokens and user info.
+    const req = context.req || context.request; // Handle if context.req is not directly available
+    if (!req.user) {
+      throw new Error('User not authenticated via Google. Ensure GoogleAuthGuard is correctly populating req.user.');
+    }
+    // Assuming req.user is already the { access_token, refresh_token, user } object from validateGoogleUser
+    // We need to set cookies here, similar to the standard login.
+    const { access_token, refresh_token, user, role = 'STUDENT' } = req.user as any; // Type assertion
+    const res = context.res || (req.res);
+
+
+    if (res) {
+        res.cookie('role', role, { // Assuming role is part of the user object or context
+        httpOnly: false, // Consider security implications, should be true if not read by client JS
+        maxAge: 15 * 60 * 1000, // match access token
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        });
+
+        res.cookie('access_token', access_token, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 15 * 60 * 1000, // 15 mins
+        });
+
+        res.cookie('refresh_token', refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
+    } else {
+        console.warn('Response object not found in context. Cookies cannot be set for Google login.');
+    }
+    
+    return req.user; 
+  }
+
+  @Query(() => String, { name: 'initiateGoogleLogin' }) // Renamed for clarity from 'googleLogin'
+  @UseGuards(GoogleAuthGuard)
+  initiateGoogleLogin() {
+    // This route is protected by GoogleAuthGuard.
+    // Accessing it (e.g. via browser navigation to a corresponding REST endpoint handled by a controller, or direct GraphQL query if client handles redirect)
+    // will trigger the Google OAuth flow.
+    // The actual response here doesn't matter as much as the guard's redirect effect.
+    return 'Redirecting to Google...';
+  }
+
+  @Mutation(() => userLoginResponse, { name: 'loginWithTelegram' })
+  @UseGuards(TelegramAuthGuard) // This guard will trigger the TelegramStrategy
+  async loginWithTelegram(
+    @Args('telegramLoginInput') telegramLoginInput: TelegramLoginInput, // Input from client widget
+    @Context() context,
+  ): Promise<userLoginResponse> {
+    // The TelegramAuthGuard and TelegramStrategy use the input to validate the user.
+    // The result from authService.validateTelegramUser (called by strategy) will be on context.req.user.
+    const req = context.req || context.request; // Handle if context.req is not directly available
+    if (!req.user) {
+      throw new Error('User not authenticated via Telegram. Ensure TelegramAuthGuard is correctly populating req.user.');
+    }
+    // Assuming req.user is already the { access_token, refresh_token, user } object from validateTelegramUser
+    // We need to set cookies here, similar to the standard login.
+    const { access_token, refresh_token, user, role = 'STUDENT' } = req.user as any; // Type assertion
+    const res = context.res || (req.res);
+
+    if (res) {
+        res.cookie('role', role, { // Assuming role is part of the user object or context
+        httpOnly: false, // Consider security implications
+        maxAge: 15 * 60 * 1000, 
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        });
+
+        res.cookie('access_token', access_token, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 15 * 60 * 1000,
+        });
+
+        res.cookie('refresh_token', refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+    } else {
+        console.warn('Response object not found in context. Cookies cannot be set for Telegram login.');
+    }
+
+    return req.user;
   }
 }
