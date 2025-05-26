@@ -321,7 +321,6 @@ type Query {
 
 type Mutation {
   signup(createAuthInput: SignUpInput!): SignUpresponse!
-  createAuth(createAuthInput: CreateAuthInput!): Auth!
   verifyOTP(verifyOTPInput: verifyOTPInput!): verifyOTPresponse!
   login(loginInput: LoginInput!): userLoginResponse!
   updateAuth(updateAuthInput: UpdateAuthInput!): Auth!
@@ -351,17 +350,6 @@ input SignUpInput {
   password: String!
   first_name: String!
   last_name: String!
-}
-
-input CreateAuthInput {
-  """Example field (placeholder)"""
-  email: ID!
-
-  """Example field (placeholder)"""
-  password: ID!
-
-  """Example field (placeholder)"""
-  role: ID!
 }
 
 input verifyOTPInput {

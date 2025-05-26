@@ -15,10 +15,10 @@ export class AuthResolver {
     return this.authService.signup(createAuthInput);
   }
 
-  @Mutation(() => Auth)
-  createAuth(@Args('createAuthInput') createAuthInput: CreateAuthInput) {
-    return this.authService.create(createAuthInput);
-  }
+  // @Mutation(() => Auth)
+  // createAuth(@Args('createAuthInput') createAuthInput: CreateAuthInput) {
+  //   return this.authService.create(createAuthInput);
+  // }
 
   @Mutation(() => verifyOTPresponse)
   verifyOTP(@Args('verifyOTPInput') verifyOTPInput: verifyOTPInput ) {
@@ -29,7 +29,6 @@ export class AuthResolver {
   async login(@Args('loginInput') LoginInput: LoginInput , @Context() context) {
     const user = await this.authService.login(LoginInput);
     const {res} = context;
-
 
     res.cookie('role', LoginInput.role, {
       httpOnly: false,

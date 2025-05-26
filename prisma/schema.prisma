@@ -110,14 +110,19 @@ model sa_teachers {
   last_name        String?
   email            String?            @unique
   full_name        String?
-  is_verified      Boolean?           @default(false)
-  otp              String?
   academy_id       Int?
-  password         String
   image            String?
+  user_id          Int?             @unique
+  description      String?
+  headline         String?
+  website_url      String?
+  instagram_url    String?
+  facebook_url     String?
+  youtube_url      String?
   sa_courses       sa_courses[]
   sa_teacher_files sa_teacher_files[]
   sa_academies     sa_academies?      @relation(fields: [academy_id], references: [id])
+  sa_users         sa_users?          @relation(fields: [user_id], references: [id])
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -171,6 +176,7 @@ model sa_users {
   sa_courses               sa_courses[]
   sa_lecture_progress      sa_lecture_progress[]
   sa_liked_courses         sa_liked_courses[]
+  sa_teachers              sa_teachers?
   sa_user_courses          sa_user_courses[]
   sa_user_feadbacks        sa_user_feadbacks[]
   sa_user_lecture_progress sa_user_lecture_progress[]
@@ -283,7 +289,7 @@ model sa_carts {
 model sa_liked_courses {
   id         BigInt      @id @default(autoincrement())
   created_at DateTime    @default(now()) @db.Timestamptz(6)
-  user_id    Int?
+  user_id    Int?        @unique
   course_id  Int?
   sa_courses sa_courses? @relation(fields: [course_id], references: [id], onDelete: Cascade)
   sa_users   sa_users?   @relation(fields: [user_id], references: [id], onDelete: Cascade)

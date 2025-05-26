@@ -34,7 +34,6 @@ export class TeachersService {
           full_name: createTeacherInput.full_name,
           email: createTeacherInput.email,
           image: image?.url,
-          password: password,
           academy_id: createTeacherInput.academy_id ? Number(createTeacherInput.academy_id) : null,
         }
       })
