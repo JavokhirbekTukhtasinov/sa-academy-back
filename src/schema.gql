@@ -301,6 +301,7 @@ type Banner {
 }
 
 type Query {
+  initiateGoogleLogin: String!
   auth(id: Int!): Auth!
   users: [User!]!
   user(id: Int!): User!
@@ -323,8 +324,11 @@ type Mutation {
   signup(createAuthInput: SignUpInput!): SignUpresponse!
   verifyOTP(verifyOTPInput: verifyOTPInput!): verifyOTPresponse!
   login(loginInput: LoginInput!): userLoginResponse!
+  loginWithGoogle: userLoginResponse!
+  loginWithTelegram(telegramLoginInput: TelegramLoginInput!): userLoginResponse!
   updateAuth(updateAuthInput: UpdateAuthInput!): Auth!
   removeAuth(id: Int!): Auth!
+  deleteUser(email: String!): String!
   refreshToken: String!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: Int!): User!
@@ -343,13 +347,13 @@ type Mutation {
   createBanner(input: CreateBannerInput!): Banner!
   updateBanner(updateBannerInput: UpdateBannerInput!): Banner!
   removeBanner(id: Int!): Banner!
+  changeBannerOrder(ids: [Int!]!): [Banner!]!
 }
 
 input SignUpInput {
   email: String!
   password: String!
-  first_name: String!
-  last_name: String!
+  full_name: String!
 }
 
 input verifyOTPInput {
@@ -363,6 +367,16 @@ input LoginInput {
 
   """send login role(ADMIN, TEACHER, STUDENT, ACADEMY)"""
   role: String!
+}
+
+input TelegramLoginInput {
+  id: String!
+  first_name: String!
+  last_name: String
+  username: String
+  photo_url: String
+  auth_date: Float!
+  hash: String!
 }
 
 input UpdateAuthInput {
@@ -452,47 +466,11 @@ input UpdateAcademyInput {
 }
 
 input CreateTeacherInput {
-  """First name"""
-  first_name: String!
-  last_name: String!
-  full_name: String
-  email: String!
-  description: String
-  password: String!
-
-  """Profile image file"""
-  image: Upload!
-
-  """Phone number"""
-  phone_number: String
-
-  """Optional multiple teacher files"""
-  teacher_files: [Upload!]
-
-  """Academy ID as stringified BigInt"""
-  academy_id: Int
+  is_agree_terms: Boolean!
 }
 
 input UpdateTeacherInput {
-  """First name"""
-  first_name: String
-  last_name: String
-  full_name: String
-  email: String
-  description: String
-  password: String
-
-  """Profile image file"""
-  image: Upload
-
-  """Phone number"""
-  phone_number: String
-
-  """Optional multiple teacher files"""
-  teacher_files: [Upload!]
-
-  """Academy ID as stringified BigInt"""
-  academy_id: Int
+  is_agree_terms: Boolean
   id: Int!
 }
 

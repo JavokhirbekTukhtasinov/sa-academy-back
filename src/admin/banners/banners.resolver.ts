@@ -8,12 +8,15 @@ import { UseGuards } from '@nestjs/common';
 import { CurrentUser } from 'src/client/decorators/current-user.decorator';
 import { CurrentUserProps } from 'src/client/entities/common.entities';
 import { AuthGuard } from 'src/client/guards/gql-auth.guard';
+import { Roles } from 'src/client/decorators/oles.decorator';
+import { RolesGuard } from 'src/client/guards/roles.guard';
 
 @Resolver(() => Banner)
 export class BannersResolver {
   constructor(private readonly bannersService: BannersService) {}
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Mutation(() => Banner)
   createBanner(@CurrentUser() user: CurrentUserProps, @Args('input') createBannerInput: CreateBannerInput) {
     return this.bannersService.create(createBannerInput, user);
@@ -29,13 +32,26 @@ export class BannersResolver {
     return this.bannersService.findOne(id);
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Mutation(() => Banner)
   updateBanner(@Args('updateBannerInput') updateBannerInput: UpdateBannerInput) {
     return this.bannersService.update(updateBannerInput.id, updateBannerInput);
   }
 
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Mutation(() => Banner)
   removeBanner(@Args('id', { type: () => Int }) id: number) {
     return this.bannersService.remove(id);
   }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Mutation(() => [Banner])
+  changeBannerOrder(@Args('ids', { type: () => [Int] }) ids: number[]) {
+    return this.bannersService.changeOrder(ids);
+  }
+
 }

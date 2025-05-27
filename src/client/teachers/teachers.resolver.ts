@@ -5,8 +5,6 @@ import { CreateTeacherInput, CreateTeacherResponse } from './dto/create-teacher.
 import { UpdateTeacherInput } from './dto/update-teacher.input';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../guards/gql-auth.guard';
-import { RolesGuard } from '../guards/roles.guard';
-import { Roles } from '../decorators/oles.decorator';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { CurrentUserProps } from '../entities/common.entities';
 
@@ -14,10 +12,12 @@ import { CurrentUserProps } from '../entities/common.entities';
 export class TeachersResolver {
   constructor(private readonly teachersService: TeachersService) {}
 
+
+  @UseGuards(AuthGuard)
   @Mutation(() => CreateTeacherResponse)
-  createTeacher(@Args('createTeacherInput') createTeacherInput: CreateTeacherInput) {
+  createTeacher(@CurrentUser() user: CurrentUserProps, @Args('createTeacherInput') createTeacherInput: CreateTeacherInput) {
     console.log(createTeacherInput)
-    return this.teachersService.create(createTeacherInput);
+    return this.teachersService.create(user, createTeacherInput);
   }
 
   @Query(() => [Teacher], { name: 'teachers' })

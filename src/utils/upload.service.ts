@@ -111,4 +111,12 @@ export class UploadService {
     if (ext === 'pdf') return 'application/pdf';
     return 'application/octet-stream';
   }
+
+  public async deleteFile(key: string) {
+    const command = new PutObjectCommand({
+      Bucket: process.env.S3_BUCKET,
+      Key: key,
+    });
+    await this.wasabi.send(command);
+  }
 }

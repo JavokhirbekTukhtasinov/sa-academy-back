@@ -8,8 +8,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
   app.enableCors({
+    // origin: "*",
     origin: (origin, callback) => {
-      const allowedOrigins = ['http://localhost:3000',"http://localhost:3001", "electron://altair", 'http://localhost:8080', 'https://ustozhub.com'];
+      console.log({origin})
+      const allowedOrigins = ['http://localhost:3000',"http://localhost:3001", "electron://altair", 'http://localhost:8080', 'https://ustozhub.com' , "http://172.30.1.26:3000", "http://172.30.1.26:8080"];
+      
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {

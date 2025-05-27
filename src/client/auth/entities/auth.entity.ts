@@ -1,5 +1,5 @@
 import { ObjectType, Field, Int, InputType, registerEnumType, createUnionType } from '@nestjs/graphql';
-import { IsEmail, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 import { Academy } from 'src/client/academies/entities/academy.entity';
 import { Teacher } from 'src/client/teachers/entities/teacher.entity';
 import { User } from 'src/client/users/entities/user.entity';
@@ -44,13 +44,18 @@ export class SignUpInput {
   @MinLength(8)
   password: string;
   
-  @Field()
-  @MinLength(3)
-  first_name: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @Field({nullable: false})
+  full_name: string;
+  // @Field()
+  // @MinLength(3)
+  // first_name: string;
   
-  @Field()
-  @MinLength(3)
-  last_name: string;
+  // @Field()
+  // @MinLength(3)
+  // last_name: string;
 }
 
 

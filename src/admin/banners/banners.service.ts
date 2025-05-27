@@ -73,7 +73,51 @@ async  create(createBannerInput: CreateBannerInput, user: CurrentUserProps) {
   }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} banner`;
+ async remove(id: number): Promise<any> {
+try {
+  const banner = await this.prisma.sa_banners.findUnique({
+    where: {
+      id
+    }
+  })
+    await this.uploadService.deleteFile(banner.image_desktop)
+    await this.uploadService.deleteFile(banner.image_mobile)
+    return await this.prisma.sa_banners.delete({
+      where: {
+        id
+      }
+    })
+} catch (error) {
+  throw new BadRequestException(error)
+}
   }
+
+
+  public async changeOrder(ids: number[]): Promise<any> {
+    try {
+      const banners = await this.prisma.sa_banners.findMany({
+        where: {
+          id: {
+            in: ids
+          }
+        },
+        orderBy: {
+          order_num: 'asc'
+        }
+      })
+      for (let i = 0; i < banners.length; i++) {
+        await this.prisma.sa_banners.update({
+          where: {
+            id: banners[i].id
+          },
+          data: {
+            order_num: i + 1
+          }
+        })
+      }
+    } catch (error) {
+      throw new BadRequestException(error)
+    }
+  }
+
 }
