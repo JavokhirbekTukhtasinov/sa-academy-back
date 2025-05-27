@@ -172,10 +172,10 @@ model sa_users {
   otp                      String?
   is_verified              Boolean?                   @default(false)
   password                 String?
-  sa_carts                 sa_carts[]
+  avatar                   String?
   google_id                String?
-  telegram_id               String?
-  avatar                    String?
+  telegram_id              String?
+  sa_carts                 sa_carts[]
   sa_courses               sa_courses[]
   sa_lecture_progress      sa_lecture_progress[]
   sa_liked_courses         sa_liked_courses?
