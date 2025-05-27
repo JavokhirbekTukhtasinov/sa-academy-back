@@ -20,6 +20,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "setup:prod": "npx prisma db pull && npx prisma generate && yarn build && yarn start:prod"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "@apollo/server": "^4.12.0",
     "@aws-sdk/client-s3": "^3.808.0",
