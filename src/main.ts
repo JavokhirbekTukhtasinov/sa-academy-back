@@ -11,7 +11,10 @@ async function bootstrap() {
     // origin: "*",
     origin: (origin, callback) => {
       console.log({origin})
-      const allowedOrigins = ['http://localhost:3000',"http://localhost:3001", "electron://altair", 'http://localhost:8080', 'https://ustozhub.com' , "http://172.30.1.26:3000", "http://172.30.1.26:8080"];
+      const allowedOrigins = [
+        "https://sparkling-curiosity-production.up.railway.app",
+        "https://api.ustozhub.com",
+        'http://localhost:3000',"http://localhost:3001", "electron://altair", 'http://localhost:8080', 'https://ustozhub.com' , "http://172.30.1.26:3000", "http://172.30.1.26:8080"];
       
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
