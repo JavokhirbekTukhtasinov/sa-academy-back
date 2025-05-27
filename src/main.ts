@@ -11,16 +11,23 @@ async function bootstrap() {
     // origin: "*",
     origin: (origin, callback) => {
       console.log({origin})
-      const allowedOrigins = [
-        "https://sparkling-curiosity-production.up.railway.app",
-        "https://api.ustozhub.com",
-        'http://localhost:3000',"http://localhost:3001", "electron://altair", 'http://localhost:8080', 'https://ustozhub.com' , "http://172.30.1.26:3000", "http://172.30.1.26:8080"];
+      callback(null, true);
+      // const allowedOrigins = [
+      //   "https://sparkling-curiosity-production.up.railway.app",
+      //   "https://api.ustozhub.com",
+      //   'http://localhost:3000',
+      //   "http://localhost:3001",
+      //    "electron://altair",
+      //     'http://localhost:8080',
+      //      'https://ustozhub.com',
+      //       "http://172.30.1.26:3000", 
+      //      "http://172.30.1.26:8080",];
       
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+      // if (!origin || allowedOrigins.includes(origin)) {
+      //   callback(null, true);
+      // } else {
+      //   callback(new Error('Not allowed by CORS'));
+      // }
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
