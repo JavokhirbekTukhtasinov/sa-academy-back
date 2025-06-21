@@ -10,7 +10,6 @@ async function bootstrap() {
   app.enableCors({
     // origin: "*",
     origin: (origin, callback) => {
-      console.log({origin})
       callback(null, true);
       // const allowedOrigins = [
       //   "https://sparkling-curiosity-production.up.railway.app",
@@ -22,7 +21,6 @@ async function bootstrap() {
       //      'https://ustozhub.com',
       //       "http://172.30.1.26:3000", 
       //      "http://172.30.1.26:8080",];
-      
       // if (!origin || allowedOrigins.includes(origin)) {
       //   callback(null, true);
       // } else {
@@ -31,7 +29,7 @@ async function bootstrap() {
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
-    preflightContinue: false,
+    preflightContinue: true,
     optionsSuccessStatus: 204
   })
   app.useGlobalPipes(new ValidationPipe());

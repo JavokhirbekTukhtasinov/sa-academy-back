@@ -56,6 +56,7 @@ model sa_courses {
   sa_users          sa_users?           @relation(fields: [user_id], references: [id])
   sa_lectures       sa_lectures[]
   sa_liked_courses  sa_liked_courses[]
+  sa_sections       sa_sections[]
   sa_user_courses   sa_user_courses[]
   sa_user_feadbacks sa_user_feadbacks[]
   sa_user_payments  sa_user_payments[]
@@ -95,9 +96,15 @@ model sa_lectures {
   lecture_main_video       String?
   is_public                Boolean?                   @default(false)
   order_num                Decimal?                   @db.Decimal
+  section_id               Int?
+  curriclum_id             Int?
+  type                     lecture_types?
+  article                  String?
   sa_lecture_files         sa_lecture_files[]
   sa_lecture_progress      sa_lecture_progress[]
   sa_courses               sa_courses?                @relation(fields: [course_id], references: [id], onUpdate: NoAction)
+  sa_curriclumes           sa_curriclumes?            @relation(fields: [curriclum_id], references: [id], onDelete: Cascade)
+  sa_sections              sa_sections?               @relation(fields: [section_id], references: [id], onDelete: Cascade)
   sa_user_lecture_progress sa_user_lecture_progress[]
 }
 
@@ -321,6 +328,49 @@ model sa_course_messages {
   congrant_message String?
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model sa_sections {
+  id             Int              @id @default(autoincrement())
+  created_at     DateTime         @default(now()) @db.Timestamptz(6)
+  course_id      Int?
+  is_hidden      Boolean?         @default(false)
+  order_num      Decimal?         @db.Decimal
+  name_en        String?
+  name_ru        String?
+  name_uz        String?
+  sa_curriclumes sa_curriclumes[]
+  sa_lectures    sa_lectures[]
+  sa_quizes      sa_quizes[]
+  sa_courses     sa_courses?      @relation(fields: [course_id], references: [id], onDelete: Cascade)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model sa_curriclumes {
+  id          Int              @id @default(autoincrement())
+  created_at  DateTime         @default(now()) @db.Timestamptz(6)
+  section_id  Int?
+  type        curriclum_types?
+  title       String?
+  sa_sections sa_sections?     @relation(fields: [section_id], references: [id], onDelete: Cascade)
+  sa_lectures sa_lectures[]
+  sa_quizes   sa_quizes[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model sa_quizes {
+  id             Int             @id @default(autoincrement())
+  created_at     DateTime        @default(now()) @db.Timestamptz(6)
+  type           quiz_types?
+  section_id     Int?
+  order_num      Decimal?        @db.Decimal
+  curriclum_id   Int?
+  sa_curriclumes sa_curriclumes? @relation(fields: [curriclum_id], references: [id], onDelete: Cascade)
+  sa_sections    sa_sections?    @relation(fields: [section_id], references: [id], onDelete: Cascade)
+}
+
 /// This enum is commented in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 enum academy_status {
   PENDING
@@ -333,4 +383,24 @@ enum course_status {
   SUBMITTED_FOR_REVIEW
   APPROVED
   REJECTED
+}
+
+/// This enum is commented in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+enum curriclum_types {
+  LECTURE
+  QUIZ
+  ASSIGNMENT
+}
+
+/// This enum is commented in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+enum lecture_types {
+  VIDEO
+  ARTICLE
+}
+
+/// This enum is commented in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+enum quiz_types {
+  MCQ
+  FIB
+  TEXT
 }

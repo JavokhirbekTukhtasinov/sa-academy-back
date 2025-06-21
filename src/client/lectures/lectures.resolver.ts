@@ -5,6 +5,7 @@ import { CreateLectureInput } from './dto/create-lecture.input';
 import { UpdateLectureInput } from './dto/update-lecture.input';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../guards/gql-auth.guard';
+import { CreateSectionInput, CreateSectionResponse } from './dto/create-section.input';
 
 @Resolver(() => Lecture)
 export class LecturesResolver {
@@ -16,6 +17,11 @@ export class LecturesResolver {
     return this.lecturesService.create(createLectureInput);
   }
 
+  @UseGuards(AuthGuard)
+  @Mutation(() => CreateSectionResponse)
+  createSection(@Args('input') createSectionInput: CreateSectionInput) {
+    return this.lecturesService.createSection(createSectionInput);
+  }
 
   // @UseGuards(AuthGuard)
   // @Mutation()

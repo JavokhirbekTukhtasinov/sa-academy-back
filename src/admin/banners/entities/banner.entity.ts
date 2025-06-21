@@ -4,9 +4,6 @@ import { Admin } from 'src/admin/dtos/admin.entity';
 
 @ObjectType()
 export class Banner {
-
-
-
   @Field(() => Int, { description: 'Example field (placeholder)' })
   id: number
 

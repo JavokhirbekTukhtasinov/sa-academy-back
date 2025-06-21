@@ -93,8 +93,42 @@ export class TeachersService {
     return `This action returns a #${id} teacher`;
   }
 
-  update(id: number, updateTeacherInput: UpdateTeacherInput) {
-    return `This action updates a #${id} teacher`;
+ async update(id: number, updateTeacherInput: UpdateTeacherInput) {
+try {
+    const teacher = await this.prisma.sa_teachers.findUnique({
+      where: {
+        id
+      }
+    })
+
+    if(!teacher) {
+      throw new BadRequestException('Teacher not found');
+    }
+    let image = null;
+
+    if(updateTeacherInput.image && typeof updateTeacherInput.image !== 'string') {
+      image = await this.uploadService.uploadFromGraphQL((await updateTeacherInput.image), 'image', `teacher_images/${updateTeacherInput.first_name}-${updateTeacherInput.last_name}`);
+    }
+    return this.prisma.sa_teachers.update({
+      where: {
+        id
+      },
+      data: {
+        first_name: updateTeacherInput.first_name,
+        last_name: updateTeacherInput.last_name,
+        email: updateTeacherInput.email,
+        facebook_url: updateTeacherInput.facebook_url || teacher.facebook_url,
+        instagram_url: updateTeacherInput.instagram_url || teacher.instagram_url,
+        youtube_url: updateTeacherInput.youtube_url || teacher.youtube_url,
+        website_url: updateTeacherInput.website_url || teacher.website_url,
+        headline: updateTeacherInput.headline || teacher.headline,
+        description: updateTeacherInput.description || teacher.description,
+        image: image.url || teacher.image,
+      }
+    })
+} catch (error) {
+  throw new BadRequestException(error);
+}
   }
 
   remove(id: number) {

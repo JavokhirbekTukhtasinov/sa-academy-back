@@ -284,6 +284,25 @@ type Attachment {
   lecture_id: Int!
 }
 
+type CreateSectionResponse {
+  message: String!
+  section_id: Int!
+}
+
+type Curriclum {
+  id: Int!
+  title: String!
+  type: CurriclumType!
+  created_at: Date!
+  sa_lectures: [Lecture!]
+}
+
+enum CurriclumType {
+  LECTURE
+  QUIZ
+  ASSIGNMENT
+}
+
 type Admin {
   id: Int!
 }
@@ -316,8 +335,8 @@ type Query {
   subCategories(id: Int): [SubCategory!]!
   lectures: [Lecture!]!
   lecture(id: Int!): Lecture!
-  banners: [Banner!]!
-  banner(id: Int!): Banner!
+  getBanners: [Banner!]!
+  getBannerById(id: Int!): Banner!
 }
 
 type Mutation {
@@ -342,8 +361,10 @@ type Mutation {
   updateCourse(updateCourseInput: UpdateCourseInput!): Course!
   removeCourse(id: Int!): Course!
   createLecture(input: CreateLectureInput!): CreateLectureResponse!
+  createSection(input: CreateSectionInput!): CreateSectionResponse!
   updateLecture(updateLectureInput: UpdateLectureInput!): Lecture!
   removeLecture(id: Int!): Lecture!
+  createCurriclum(input: CreateCurriculumInput!): Curriclum!
   createBanner(input: CreateBannerInput!): Banner!
   updateBanner(updateBannerInput: UpdateBannerInput!): Banner!
   removeBanner(id: Int!): Banner!
@@ -472,6 +493,20 @@ input CreateTeacherInput {
 input UpdateTeacherInput {
   is_agree_terms: Boolean
   id: Int!
+
+  """First name"""
+  first_name: String
+
+  """Last name"""
+  last_name: String
+  email: String
+  description: String
+  headline: String
+  website_url: String
+  instagram_url: String
+  facebook_url: String
+  youtube_url: String
+  image: Upload
 }
 
 input CreateCourseInput {
@@ -523,20 +558,45 @@ input CreateLectureInput {
   """Example field (placeholder)"""
   name: String!
   description: String!
-  course_id: Int!
+  curriclum_id: Int!
+  type: LectureType!
   video_key: String
   attachmentIds: [Int!]
+  article: String
+}
+
+enum LectureType {
+  VIDEO
+  ARTICLE
+}
+
+input CreateSectionInput {
+  name_en: String!
+  name_uz: String
+  name_ru: String
+  course_id: Int!
+  order_num: Int
+  is_hidden: Boolean
 }
 
 input UpdateLectureInput {
   name: String
   description: String
-  course_id: Int
+  curriclum_id: Int
+  type: LectureType
   video_key: String
   attachmentIds: [Int!]
+  article: String
   id: Int!
 }
 
+input CreateCurriculumInput {
+  section_id: Int!
+  type: CurriclumType!
+  title: String!
+}
+
+"""Create Banner Input"""
 input CreateBannerInput {
   image_desktop: Upload!
   image_mobile: Upload!

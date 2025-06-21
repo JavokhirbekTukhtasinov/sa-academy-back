@@ -12,6 +12,7 @@ import { AdminModule } from './admin/admin.module';
       playground: true,
       autoSchemaFile:  join(process.cwd(), 'src/schema.gql'),
       context: ({ req, res }) => ({ req, res }),
+      csrfPrevention: false
     }),
     ClientModule,
     AdminModule,

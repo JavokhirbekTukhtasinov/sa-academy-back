@@ -1,5 +1,6 @@
 import { InputType, Int, Field, ObjectType } from '@nestjs/graphql';
 import { GraphQLDate } from 'graphql-scalars';
+import { LectureType } from '../enums/lectureType.enum';
 
 @InputType()
 export class CreateLectureInput {
@@ -12,13 +13,20 @@ export class CreateLectureInput {
   description: string;
 
   @Field(() => Int)
-  course_id: number;
+  curriclum_id: number;
+
+  @Field(() => LectureType, { nullable: false })
+  type: LectureType;
 
   @Field(() => String, { nullable: true }) // Wasabi key
   video_key?: string;
 
   @Field(() => [Int], { nullable: true }) // Attachment IDs
   attachmentIds?: number[];
+
+  @Field(() => String, { nullable: true }) // Attachment IDs
+  article?: string;
+
 }
 
 

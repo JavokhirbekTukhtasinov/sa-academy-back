@@ -4,6 +4,7 @@ import { TeachersService } from './teachers.service';
 
 describe('TeachersResolver', () => {
   let resolver: TeachersResolver;
+  let service: TeachersService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

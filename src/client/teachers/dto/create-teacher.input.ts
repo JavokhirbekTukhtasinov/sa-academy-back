@@ -5,7 +5,6 @@ import { GraphQLUpload, FileUpload } from 'graphql-upload';
 @InputType()
 export class CreateTeacherInput {
 
-
   @Field(() => Boolean, {nullable: false})
   is_agree_terms: boolean
   // @Field(() => String, { nullable: false, description: 'First name' })

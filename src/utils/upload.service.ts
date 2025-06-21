@@ -49,7 +49,8 @@ export class UploadService {
       Key: key,
       Body: _buffer,
       ContentType: mimetype,
-      ContentLength: _buffer.length
+      ContentLength: _buffer.length,
+      ACL: 'public-read'
     }));
     return { key, url: `https://s3.ap-northeast-1.wasabisys.com/${process.env.S3_BUCKET}/${key}`,};
   } catch (error) {
@@ -92,6 +93,7 @@ export class UploadService {
       Key: key,
       Body: stream,
       ContentType: this.getContentType(ext, type),
+      ACL: 'public-read',
     });
 
     await this.wasabi.send(command);

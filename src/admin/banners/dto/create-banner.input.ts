@@ -1,7 +1,7 @@
 import { InputType, Int, Field } from '@nestjs/graphql';
 import { FileUpload, GraphQLUpload } from 'graphql-upload';
 
-@InputType()
+@InputType( {description: "Create Banner Input"} )
 export class CreateBannerInput {
 
   @Field(() => GraphQLUpload, {nullable: false})

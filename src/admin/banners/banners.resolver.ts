@@ -15,30 +15,36 @@ import { RolesGuard } from 'src/client/guards/roles.guard';
 export class BannersResolver {
   constructor(private readonly bannersService: BannersService) {}
 
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Roles('ADMIN')
   @Mutation(() => Banner)
   createBanner(@CurrentUser() user: CurrentUserProps, @Args('input') createBannerInput: CreateBannerInput) {
+    console.log({createBannerInput})
     return this.bannersService.create(createBannerInput, user);
   }
 
-  @Query(() => [Banner], { name: 'banners' })
+  @Query(() => [Banner], { name: 'getBanners' })
   getBanners() {
     return this.bannersService.findAll();
   }
 
-  @Query(() => Banner, { name: 'banner' })
+
+  //Get banner for only admin
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Query(() => Banner, { name: 'getBannerById' })
   findOne(@Args('id', { type: () => Int }) id: number) {
     return this.bannersService.findOne(id);
   }
 
+
+  //Update banner 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Mutation(() => Banner)
   updateBanner(@Args('updateBannerInput') updateBannerInput: UpdateBannerInput) {
     return this.bannersService.update(updateBannerInput.id, updateBannerInput);
   }
-
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('ADMIN')
