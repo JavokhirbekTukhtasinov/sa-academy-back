@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Args, Int, Context } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
-import { Auth, LoginInput, SignUpInput, SignUpresponse,  userLoginResponse, verifyOTPInput, verifyOTPresponse } from './entities/auth.entity';
+import { Auth, LoginInput, RequestPasswordResetInput, RequestPasswordResetResponse, ResetPasswordInput, ResetPasswordResponse, SignUpInput, SignUpresponse,  userLoginResponse, verifyOTPInput, verifyOTPresponse, GoogleLoginResponse } from './entities/auth.entity';
 import { CreateAuthInput } from './dto/create-auth.input';
 import { UpdateAuthInput } from './dto/update-auth.input';
 import { Res, UseGuards } from '@nestjs/common';
@@ -8,6 +8,8 @@ import { Response } from 'express';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
 import { TelegramAuthGuard } from '../guards/telegram-auth.guard';
 import { TelegramLoginInput } from './entities/social-auth.entity';
+import { AuthGuard } from '../guards/gql-auth.guard';
+import { CurrentUser } from '../decorators/current-user.decorator';
 
 @Resolver(() => Auth)
 export class AuthResolver {
@@ -26,6 +28,16 @@ export class AuthResolver {
   @Mutation(() => verifyOTPresponse)
   verifyOTP(@Args('verifyOTPInput') verifyOTPInput: verifyOTPInput ) {
     return this.authService.verifyOTP(verifyOTPInput);
+  }
+
+  @Mutation(() => RequestPasswordResetResponse)
+  requestPasswordReset(@Args('requestPasswordResetInput') requestPasswordResetInput: RequestPasswordResetInput) {
+    return this.authService.requestPasswordReset(requestPasswordResetInput.email);
+  }
+
+  @Mutation(() => ResetPasswordResponse)
+  resetPassword(@Args('resetPasswordInput') resetPasswordInput: ResetPasswordInput) {
+    return this.authService.resetPassword(resetPasswordInput);
   }
 
   @Mutation(() => userLoginResponse)
@@ -55,53 +67,6 @@ export class AuthResolver {
   }
 
 
-  // / New Social Login Mutations
-
-  @Mutation(() => userLoginResponse, { name: 'loginWithGoogle' })
-  @UseGuards(GoogleAuthGuard)
-  async loginWithGoogle(@Context() context): Promise<userLoginResponse> {
-    // The GoogleAuthGuard and GoogleStrategy handle user authentication.
-    // The validate method in GoogleStrategy returns the user object.
-    // This user object is available on context.req.user.
-    // AuthService.validateGoogleUser (called by strategy) returns tokens and user info.
-    const req = context.req || context.request; // Handle if context.req is not directly available
-    if (!req.user) {
-      throw new Error('User not authenticated via Google. Ensure GoogleAuthGuard is correctly populating req.user.');
-    }
-    // Assuming req.user is already the { access_token, refresh_token, user } object from validateGoogleUser
-    // We need to set cookies here, similar to the standard login.
-    const { access_token, refresh_token, user, role = 'STUDENT' } = req.user as any; // Type assertion
-    const res = context.res || (req.res);
-
-
-    if (res) {
-        res.cookie('role', role, { // Assuming role is part of the user object or context
-        httpOnly: false, // Consider security implications, should be true if not read by client JS
-        maxAge: 15 * 60 * 1000, // match access token
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        });
-
-        res.cookie('access_token', access_token, {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 15 * 60 * 1000, // 15 mins
-        });
-
-        res.cookie('refresh_token', refresh_token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
-    } else {
-        console.warn('Response object not found in context. Cookies cannot be set for Google login.');
-    }
-    
-    return req.user; 
-  }
-
   @Query(() => String, { name: 'initiateGoogleLogin' }) // Renamed for clarity from 'googleLogin'
   @UseGuards(GoogleAuthGuard)
   initiateGoogleLogin() {
@@ -111,7 +76,6 @@ export class AuthResolver {
     // The actual response here doesn't matter as much as the guard's redirect effect.
     return 'Redirecting to Google...';
   }
-
 
   @Mutation(() => userLoginResponse, { name: 'loginWithTelegram' })
   @UseGuards(TelegramAuthGuard) // This guard will trigger the TelegramStrategy
@@ -215,5 +179,36 @@ export class AuthResolver {
     });
 
     return access_token;
+  }
+
+  @Mutation(() => GoogleLoginResponse)
+  async signInWithGoogle(
+    @Args('token', { type: () => String }) token: string,
+    @Context() context,
+  ) {
+    const { res } = context;
+    const { user, access_token, refresh_token } =
+      await this.authService.loginWithGoogleToken(token);
+
+    res.cookie('access_token', access_token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 15 * 60 * 1000, // 15 mins
+    });
+
+    res.cookie('refresh_token', refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    return { user, access_token, refresh_token };
+  }
+
+  @Mutation(() => Auth)
+  createAuth(@Args('createAuthInput') createAuthInput: CreateAuthInput) {
+    return this.authService.create(createAuthInput);
   }
 }

@@ -84,8 +84,13 @@ scalar DateTime
 
 type User {
   id: Int!
-  name: String!
-  email: String!
+  email: String
+  full_name: String
+  first_name: String
+  last_name: String
+  avatar: String
+  google_id: String
+  created_at: DateTime!
 }
 
 type UserCourses {
@@ -117,6 +122,61 @@ type UserPayment {
   sa_users: User
 }
 
+type CurriclumAttachment {
+  id: Int!
+  created_at: Time!
+  type: CurriclumAttachmentTypes
+  link_url: String
+  name: String
+  curriclum_id: Int
+}
+
+"""
+A time string at UTC, such as 10:15:30Z, compliant with the `full-time` format outlined in section 5.6 of the RFC 3339profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+"""
+scalar Time
+
+enum CurriclumAttachmentTypes {
+  EXTERNAL_LINK
+  FILE
+}
+
+type Curriclum {
+  id: Int!
+  created_at: Time!
+  section_id: Int
+  type: CurriclumTypes
+  title: String
+  description: String
+  vide_link: String
+  article: String
+  sa_sections: Section
+  sa_curriclum_attachments: [CurriclumAttachment!]
+}
+
+enum CurriclumTypes {
+  VIDEO
+  ARTICLE
+  QUIZ
+}
+
+type Section {
+  id: Int!
+  created_at: Time!
+  updated_at: Time
+  order_num: Float
+  status: CourseStatus
+  course_id: Int
+  sa_curriclum: [Curriclum!]
+}
+
+enum CourseStatus {
+  DRAFT
+  SUBMITTED_FOR_REVIEW
+  APPROVED
+  REJECTED
+}
+
 type Course {
   id: Int!
   created_at: Time!
@@ -137,18 +197,7 @@ type Course {
   sa_user_courses: [UserCourses!]
   sa_user_feadbacks: [UserFeadbacks!]
   sa_user_payments: [UserPayment!]
-}
-
-"""
-A time string at UTC, such as 10:15:30Z, compliant with the `full-time` format outlined in section 5.6 of the RFC 3339profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
-"""
-scalar Time
-
-enum CourseStatus {
-  DRAFT
-  SUBMITTED_FOR_REVIEW
-  APPROVED
-  REJECTED
+  sa_sections: [Section!]
 }
 
 type PaginatedCourses {
@@ -244,6 +293,7 @@ scalar BigInt
 type Auth {
   """Example field (placeholder)"""
   exampleField: Int!
+  accessToken: String!
 }
 
 type verifyOTPresponse {
@@ -261,6 +311,20 @@ type userLoginResponse {
 }
 
 union userUnion = User | Teacher | Academy
+
+type RequestPasswordResetResponse {
+  message: String!
+}
+
+type ResetPasswordResponse {
+  message: String!
+}
+
+type GoogleLoginResponse {
+  access_token: String!
+  refresh_token: String!
+  user: User!
+}
 
 type createAcademyInputResponse {
   message: String!
@@ -282,6 +346,32 @@ type Attachment {
   file_name: String!
   file_url: String!
   lecture_id: Int!
+}
+
+type VideoSignedUrlResponse {
+  signedUrl: String!
+  key: String
+  expiresIn: Int
+  contentType: String
+  originalUrl: String
+}
+
+type AttachmentSignedUrlResponse {
+  signedUrl: String!
+  key: String
+  expiresIn: Int
+  contentType: String
+  originalUrl: String
+  fileName: String
+}
+
+type CurriclumWithSignedUrlsResponse {
+  id: Int!
+  title: String
+  description: String
+  vide_link: String
+  signedVideoUrl: String
+  signedAttachments: [AttachmentSignedUrlResponse!]
 }
 
 type Admin {
@@ -310,12 +400,29 @@ type Query {
   academyCategories: [AcademyCategories!]!
   teachers: [Teacher!]!
   teacher(id: Int!): Teacher!
-  getTeacherCourses(page: Int, perPage: Int, search: String): PaginatedCourses!
   course(id: Int!): Course!
+
+  """Get confirmed courses for all users"""
+  confirmedCourses(page: Int, perPage: Int, search: String, categoryId: Int, subCategoryId: Int, teacherId: Int): PaginatedCourses!
+  getTeacherCourses(page: Int, perPage: Int, search: String): PaginatedCourses!
   categories: [Category!]!
   subCategories(id: Int): [SubCategory!]!
+
+  """Generate signed URL for course thumbnail upload"""
+  generateSignedUrl(fileName: String!): String!
   lectures: [Lecture!]!
   lecture(id: Int!): Lecture!
+  curriclums: [Curriclum!]!
+  curriclum(id: Int!): Curriclum!
+  curriclumsBySection(sectionId: Int!): [Curriclum!]!
+  curriclumAttachments(curriclumId: Int!): [CurriclumAttachment!]!
+  curriclumWithSignedUrls(id: Int!): CurriclumWithSignedUrlsResponse!
+  curriclumsBySectionWithSignedUrls(sectionId: Int!): [CurriclumWithSignedUrlsResponse!]!
+  validateFileAccess(url: String!): Boolean!
+  getFileMetadata(url: String!): String!
+  getSections: [Section!]!
+  getSection(id: Int!): Section!
+  getSectionsByCourse(courseId: Int!): [Section!]!
   banners: [Banner!]!
   banner(id: Int!): Banner!
 }
@@ -323,13 +430,16 @@ type Query {
 type Mutation {
   signup(createAuthInput: SignUpInput!): SignUpresponse!
   verifyOTP(verifyOTPInput: verifyOTPInput!): verifyOTPresponse!
+  requestPasswordReset(requestPasswordResetInput: RequestPasswordResetInput!): RequestPasswordResetResponse!
+  resetPassword(resetPasswordInput: ResetPasswordInput!): ResetPasswordResponse!
   login(loginInput: LoginInput!): userLoginResponse!
-  loginWithGoogle: userLoginResponse!
   loginWithTelegram(telegramLoginInput: TelegramLoginInput!): userLoginResponse!
   updateAuth(updateAuthInput: UpdateAuthInput!): Auth!
   removeAuth(id: Int!): Auth!
   deleteUser(email: String!): String!
   refreshToken: String!
+  signInWithGoogle(token: String!): GoogleLoginResponse!
+  createAuth(createAuthInput: CreateAuthInput!): Auth!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: Int!): User!
   createAcademy(createAcademyInput: CreateAcademyInput!): createAcademyInputResponse!
@@ -344,6 +454,19 @@ type Mutation {
   createLecture(input: CreateLectureInput!): CreateLectureResponse!
   updateLecture(updateLectureInput: UpdateLectureInput!): Lecture!
   removeLecture(id: Int!): Lecture!
+  createCurriclum(createCurriclumInput: CreateCurriclumInput!): Curriclum!
+  updateCurriclum(updateCurriclumInput: UpdateCurriclumInput!): Curriclum!
+  removeCurriclum(id: Int!): Curriclum!
+  createCurriclumAttachment(createAttachmentInput: CreateCurriclumAttachmentInput!): CurriclumAttachment!
+  updateCurriclumAttachment(updateAttachmentInput: UpdateCurriclumAttachmentInput!): CurriclumAttachment!
+  removeCurriclumAttachment(id: Int!): CurriclumAttachment!
+  generateVideoSignedUrl(input: GenerateVideoSignedUrlInput!): VideoSignedUrlResponse!
+  generateVideoUploadSignedUrl(input: GenerateVideoUploadSignedUrlInput!): VideoSignedUrlResponse!
+  generateAttachmentSignedUrl(input: GenerateAttachmentSignedUrlInput!): AttachmentSignedUrlResponse!
+  generateAttachmentUploadSignedUrl(input: GenerateAttachmentUploadSignedUrlInput!): AttachmentSignedUrlResponse!
+  createSection(createSectionInput: CreateSectionInput!): Section!
+  updateSection(updateSectionInput: UpdateSectionInput!): Section!
+  removeSection(id: Int!): Section!
   createBanner(input: CreateBannerInput!): Banner!
   updateBanner(updateBannerInput: UpdateBannerInput!): Banner!
   removeBanner(id: Int!): Banner!
@@ -359,6 +482,16 @@ input SignUpInput {
 input verifyOTPInput {
   otp: Int!
   email: String!
+}
+
+input RequestPasswordResetInput {
+  email: String!
+}
+
+input ResetPasswordInput {
+  email: String!
+  otp: Float!
+  newPassword: String!
 }
 
 input LoginInput {
@@ -389,6 +522,17 @@ input UpdateAuthInput {
   """Example field (placeholder)"""
   role: ID
   id: Int!
+}
+
+input CreateAuthInput {
+  """Example field (placeholder)"""
+  email: ID!
+
+  """Example field (placeholder)"""
+  password: ID!
+
+  """Example field (placeholder)"""
+  role: ID!
 }
 
 input UpdateUserInput {
@@ -475,48 +619,35 @@ input UpdateTeacherInput {
 }
 
 input CreateCourseInput {
-  course_name: String
+  course_name: String!
   real_price: String
   sale_price: String
   description: String
-
-  """Teacher ID as stringified BigInt"""
-  teacher_id: Int
-
-  """Optional user ID as stringified BigInt"""
-  user_id: Int
-
-  """Thumbnail image file"""
-  thumbnail: Upload!
-
-  """Academy ID as stringified BigInt"""
-  academiy_id: Int
-
-  """Course type ID as stringified BigInt"""
-  course_type_id: Int!
-}
-
-input UpdateCourseInput {
-  course_name: String
-  real_price: String
-  sale_price: String
-  description: String
-
-  """Teacher ID as stringified BigInt"""
-  teacher_id: Int
-
-  """Optional user ID as stringified BigInt"""
-  user_id: Int
 
   """Thumbnail image file"""
   thumbnail: Upload
+  category_id: Int!
+}
 
-  """Academy ID as stringified BigInt"""
-  academiy_id: Int
-
-  """Course type ID as stringified BigInt"""
-  course_type_id: Int
+input UpdateCourseInput {
   id: Int!
+  course_name: String
+  subtitle: String
+  what_student_learn: String
+  requirements: String
+  course_target_level: CourseLevelTarget
+  real_price: String
+  sale_price: String
+  description: String
+  thumbnail: Upload
+  category_id: Int
+}
+
+enum CourseLevelTarget {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  ALL
 }
 
 input CreateLectureInput {
@@ -534,6 +665,79 @@ input UpdateLectureInput {
   course_id: Int
   video_key: String
   attachmentIds: [Int!]
+  id: Int!
+}
+
+input CreateCurriclumInput {
+  section_id: Int
+  type: CurriclumTypes
+  title: String
+  description: String
+  vide_link: String
+  article: String
+  attachments: [CreateCurriclumAttachmentInput!]
+}
+
+input CreateCurriclumAttachmentInput {
+  curriclum_id: Int!
+  type: CurriclumAttachmentTypes
+  link_url: String
+  name: String
+}
+
+input UpdateCurriclumInput {
+  section_id: Int
+  type: CurriclumTypes
+  title: String
+  description: String
+  vide_link: String
+  article: String
+  attachments: [CreateCurriclumAttachmentInput!]
+  id: Int!
+}
+
+input UpdateCurriclumAttachmentInput {
+  curriclum_id: Int
+  type: CurriclumAttachmentTypes
+  link_url: String
+  name: String
+  id: Int!
+}
+
+input GenerateVideoSignedUrlInput {
+  videoUrl: String!
+  expiresIn: Int = 3600
+}
+
+input GenerateVideoUploadSignedUrlInput {
+  fileName: String!
+  contentType: String!
+  expiresIn: Int = 3600
+  metadata: String
+}
+
+input GenerateAttachmentSignedUrlInput {
+  attachmentUrl: String!
+  attachmentType: CurriclumAttachmentTypes!
+  expiresIn: Int = 3600
+}
+
+input GenerateAttachmentUploadSignedUrlInput {
+  fileName: String!
+  contentType: String!
+  attachmentType: CurriclumAttachmentTypes!
+  expiresIn: Int = 3600
+  metadata: String
+}
+
+input CreateSectionInput {
+  course_id: Int!
+  name: String!
+}
+
+input UpdateSectionInput {
+  course_id: Int
+  name: String
   id: Int!
 }
 

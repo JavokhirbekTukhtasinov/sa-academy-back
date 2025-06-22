@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: sa-academy-postgres
+    environment:
+      POSTGRES_DB: sa_academy
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - sa-academy-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # LocalStack for AWS services simulation
+  localstack:
+    image: localstack/localstack:4.5.0
+    container_name: sa-academy-localstack
+    environment:
+      - SERVICES=s3,lambda,sqs,sns,ses,cloudwatch
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - AWS_DEFAULT_REGION=us-east-1
+      - EDGE_PORT=4566
+      - PERSISTENCE=1
+      - PERSISTENCE_PATH=/tmp/localstack/data
+      - TMPDIR=/tmp/localstack/tmp
+      - HOSTNAME_EXTERNAL=localhost
+      - LS_LOG=info
+    ports:
+      - "4566:4566"
+    volumes:
+      - localstack_data:/tmp/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - sa-academy-network
+    restart: unless-stopped
+
+  # NestJS Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sa-academy-app
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/sa_academy
+      - DIRECT_URL=postgresql://postgres:postgres@postgres:5432/sa_academy
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+      - AWS_S3_ENDPOINT=http://localstack:4566
+      - AWS_S3_FORCE_PATH_STYLE=true
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - GOOGLE_CLIENT_ID=your-google-client-id
+      - GOOGLE_CLIENT_SECRET=your-google-client-secret
+      - TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_started
+    networks:
+      - sa-academy-network
+    command: yarn start:dev
+
+  # Redis (optional, for caching)
+  redis:
+    image: redis:7-alpine
+    container_name: sa-academy-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - sa-academy-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+  localstack_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  sa-academy-network:
+    driver: bridge 

@@ -71,3 +71,71 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](LICENSE).
+
+# Smart Academy Backend
+
+A NestJS-based GraphQL API for the Smart Academy platform.
+
+## GraphQL Documentation
+
+This project includes multiple tools for exploring and documenting the GraphQL API:
+
+### 1. Apollo Playground
+- **URL**: `http://localhost:8080/graphql`
+- **Features**: Interactive GraphQL playground with syntax highlighting, query validation, and real-time testing
+- **Usage**: Write and execute GraphQL queries directly in the browser
+
+### 2. GraphQL Voyager
+- **URL**: `http://localhost:8080/voyager`
+- **Features**: Visual representation of your GraphQL schema with interactive relationship diagrams
+- **Benefits**: 
+  - Visual exploration of complex entity relationships
+  - Better understanding of API structure
+  - Interactive documentation for frontend developers
+  - Always up-to-date with your current schema
+
+### 3. Generated Schema
+- **File**: `src/schema.gql`
+- **Features**: Auto-generated GraphQL schema from TypeScript decorators
+- **Usage**: Reference for understanding available types, queries, and mutations
+
+## Getting Started
+
+1. Install dependencies:
+   ```bash
+   yarn install
+   ```
+
+2. Set up your environment variables (see `.env.example`)
+
+3. Start the development server:
+   ```bash
+   yarn start:dev
+   ```
+
+4. Access the documentation:
+   - Apollo Playground: http://localhost:8080/graphql
+   - GraphQL Voyager: http://localhost:8080/voyager
+
+## API Structure
+
+The API is organized into two main modules:
+
+### Client Module
+- **Academies**: Academy management and information
+- **Courses**: Course creation, management, and enrollment
+- **Teachers**: Teacher profiles and course assignments
+- **Users**: Student accounts and profiles
+- **Auth**: Authentication and authorization
+- **Lectures**: Course content and materials
+
+### Admin Module
+- **Banners**: Promotional banner management
+- **Admin**: Administrative functions
+
+## Development
+
+- **Build**: `yarn build`
+- **Test**: `yarn test`
+- **Lint**: `yarn lint`
+- **Format**: `yarn format`

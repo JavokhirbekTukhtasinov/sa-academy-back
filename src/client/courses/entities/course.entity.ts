@@ -5,6 +5,7 @@ import { Category, PaginationMeta } from 'src/client/entities/common.entities';
 import { Lecture } from 'src/client/lectures/entities/lecture.entity';
 import { Teacher } from 'src/client/teachers/entities/teacher.entity';
 import { User, UserCourses, UserFeadbacks, UserPayment } from 'src/client/users/entities/user.entity';
+import { Section } from 'src/client/sections/entities/section.entity';
 
 @ObjectType()
 export class Course {
@@ -38,7 +39,6 @@ export class Course {
   @Field(() => Int, { nullable: true })
   category_id   ?:number
   
-
   @Field(() => Academy, { nullable: true })
   sa_academies?: Academy
   
@@ -65,6 +65,9 @@ export class Course {
 
   @Field(() => [UserPayment], { nullable: true })
   sa_user_payments?:UserPayment[]
+
+  @Field(() => [Section], { nullable: true })
+  sa_sections?: Section[]
 }
 
 
@@ -90,3 +93,15 @@ registerEnumType(CourseStatus, {
   name: "CourseStatus",
 });
 
+
+
+export enum CourseLevelTarget {
+  BEGINNER = "BEGINNER",
+  INTERMEDIATE = "INTERMEDIATE",
+  ADVANCED = "ADVANCED",
+  ALL = "ALL",
+}
+
+registerEnumType(CourseLevelTarget, {
+  name: "CourseLevelTarget",
+});

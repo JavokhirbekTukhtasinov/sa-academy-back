@@ -20,34 +20,55 @@ export class CoursesResolver {
     return this.coursesService.create(createCourseInput, user);
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
+  @Query(() => Course, { name: 'course' })
+  findOneByUserId(@Args('id', { type: () => Int }) id: number) {
+    return this.coursesService.findOneByUserId(id);
+  }
+
+  @Query(() => Course, { name: 'course' })
+  getOneByCourseId(@Args('id', { type: () => Int }) id: number) {
+    return this.coursesService.findOneByCourseId(id);
+  }
+
+
+  @Query(() => PaginatedCourses, { name: 'confirmedCourses' , description: 'Get confirmed courses for all users' })
+  getConfirmedCourses(@Args('page', { type: () => Int, nullable: true }) page: number, @Args('perPage', { type: () => Int, nullable: true }) perPage: number, @Args('search', { type: () => String , nullable: true}) search: string, @Args('categoryId', { type: () => Int, nullable: true }) categoryId: number, @Args('subCategoryId', { type: () => Int, nullable: true }) subCategoryId: number, @Args('teacherId', { type: () => Int, nullable: true }) teacherId: number) { 
+    return this.coursesService.getConfirmedCourses(page, perPage, search, categoryId, subCategoryId, teacherId);
+  }
+
+
+
+  @UseGuards(AuthGuard)
   @Query(() => PaginatedCourses)
-  @Roles('TEACHER')
+  // @Roles('TEACHER')
   getTeacherCourses(@CurrentUser() user: CurrentUserProps, @Args('page', { type: () => Int, nullable: true }) page: number, @Args('perPage', { type: () => Int, nullable: true }) perPage: number, @Args('search', { type: () => String , nullable: true}) search: string) {
     return this.coursesService.findTeacherCourses(user, page, perPage, search);
   }
 
-  @Query(() => Course, { name: 'course' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.coursesService.findOne(id);
-  }
-
- @Query(() => [Category], { name: 'categories' })
+  @Query(() => [Category], { name: 'categories' })
   getCategories() {
     return this.coursesService.getCategories();
  }
 
 
-@Query(() =>[SubCategory], { name: 'subCategories' })
+ @Query(() =>[SubCategory], { name: 'subCategories' })
   getSubCategories(@Args('id', { type: () => Int, nullable: true }) id: number) {
     return this.coursesService.getSubCategories(id);
  }
 
+  @UseGuards(AuthGuard)
   @Mutation(() => Course)
-  updateCourse(@Args('updateCourseInput') updateCourseInput: UpdateCourseInput) {
-    return this.coursesService.update(updateCourseInput.id, updateCourseInput);
+  updateCourse(@CurrentUser() user: CurrentUserProps, @Args('updateCourseInput') updateCourseInput: UpdateCourseInput) {
+    return this.coursesService.update(updateCourseInput.id, updateCourseInput, user);
   }
 
+  @UseGuards(AuthGuard)
+  @Query(() => String, { name: 'generateSignedUrl', description: 'Generate signed URL for course thumbnail upload' })
+  generateSignedUrl(@Args('fileName', { type: () => String }) fileName: string) {
+    return this.coursesService.generateSignedUrl(fileName);
+  }
+
+  @UseGuards(AuthGuard)
   @Mutation(() => Course)
   removeCourse(@Args('id', { type: () => Int }) id: number) {
     return this.coursesService.remove(id);

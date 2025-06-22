@@ -7,11 +7,26 @@ export class User {
   @Field(() => Int)
   id: number;
 
-  @Field()
-  name: string;
+  @Field(() => String, { nullable: true })
+  email?: string;
 
-  @Field()
-  email: string;
+  @Field(() => String, { nullable: true })
+  full_name?: string;
+
+  @Field(() => String, { nullable: true })
+  first_name?: string;
+
+  @Field(() => String, { nullable: true })
+  last_name?: string;
+
+  @Field(() => String, { nullable: true })
+  avatar?: string;
+
+  @Field(() => String, { nullable: true })
+  google_id?: string;
+
+  @Field(() => Date)
+  created_at: Date;
 }
 
 

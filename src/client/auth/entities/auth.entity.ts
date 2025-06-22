@@ -1,5 +1,5 @@
 import { ObjectType, Field, Int, InputType, registerEnumType, createUnionType } from '@nestjs/graphql';
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsNumber, IsString, MinLength } from 'class-validator';
 import { Academy } from 'src/client/academies/entities/academy.entity';
 import { Teacher } from 'src/client/teachers/entities/teacher.entity';
 import { User } from 'src/client/users/entities/user.entity';
@@ -8,6 +8,9 @@ import { User } from 'src/client/users/entities/user.entity';
 export class Auth {
   @Field(() => Int, { description: 'Example field (placeholder)' })
   exampleField: number;
+
+  @Field(() => String)
+  accessToken: string;
 }
 
 @InputType()
@@ -117,4 +120,52 @@ export class userLoginResponse {
 
   @Field(() => userUnion)
   user:typeof userUnion;
+}
+
+@InputType()
+export class RequestPasswordResetInput {
+  @Field()
+  @IsEmail()
+  email: string;
+}
+
+@ObjectType()
+export class RequestPasswordResetResponse {
+  @Field()
+  message: string;
+}
+
+@InputType()
+export class ResetPasswordInput {
+  @Field()
+  @IsEmail()
+  email: string;
+
+  @Field()
+  @IsNumber()
+  @MinLength(6)
+  otp: number;
+
+  @Field()
+  @IsString()
+  @MinLength(8)
+  newPassword: string;
+}
+
+@ObjectType()
+export class ResetPasswordResponse {
+  @Field()
+  message: string;
+}
+
+@ObjectType()
+export class GoogleLoginResponse {
+  @Field(() => String)
+  access_token: string;
+
+  @Field(() => String)
+  refresh_token: string;
+
+  @Field(() => User)
+  user: User;
 }

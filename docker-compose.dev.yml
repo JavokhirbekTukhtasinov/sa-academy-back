@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # LocalStack for AWS services simulation
+  localstack:
+    image: localstack/localstack:4.5.0
+    container_name: sa-academy-localstack-dev
+    environment:
+      - SERVICES=s3
+      - DEBUG=1
+      - AWS_DEFAULT_REGION=us-east-1
+      - EDGE_PORT=4566
+      - PERSISTENCE=0
+      - HOSTNAME_EXTERNAL=localhost
+      - LS_LOG=info
+    ports:
+      - "4566:4566"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - sa-academy-dev-network
+    restart: unless-stopped
+
+  # Redis (optional, for caching)
+  redis:
+    image: redis:7-alpine
+    container_name: sa-academy-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - sa-academy-dev-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  localstack_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+
+networks:
+  sa-academy-dev-network:
+    driver: bridge
