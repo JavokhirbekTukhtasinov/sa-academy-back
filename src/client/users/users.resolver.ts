@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
+import { UserCourses, UserFeadbacks, UserPayment } from './entities/user.entity';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -33,4 +34,18 @@ export class UsersResolver {
     return this.usersService.remove(id);
   }
 
+  @Query(() => [UserCourses], { name: 'getUserLikedCourses' })
+  getUserLikedCourses(@Args('userId', { type: () => Int }) userId: number) {
+    return this.usersService.getUserLikedCourses(userId);
+  }
+
+  @Query(() => [UserFeadbacks], { name: 'getUserFeadbacks' })
+  getUserFeadbacks(@Args('userId', { type: () => Int }) userId: number) {
+    return this.usersService.getUserFeadbacks(userId);
+  }
+
+  @Query(() => [UserPayment], { name: 'getUserPayments' })
+  getUserPayments(@Args('userId', { type: () => Int }) userId: number) {
+    return this.usersService.getUserPayments(userId);
+  }
 }

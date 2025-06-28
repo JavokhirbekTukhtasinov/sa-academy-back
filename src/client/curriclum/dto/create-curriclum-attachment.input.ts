@@ -3,7 +3,7 @@ import { CurriclumAttachmentTypes } from '../entities/curriclum-attachment.entit
 
 @InputType()
 export class CreateCurriclumAttachmentInput {
-  @Field(() => Int, { nullable: false })
+  @Field(() => Int, { nullable: true })
   curriclum_id?: number;
 
   @Field(() => CurriclumAttachmentTypes, { nullable: true })

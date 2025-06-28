@@ -6,6 +6,7 @@ import { ClientModule } from './client/client.module';
 import { AdminModule } from './admin/admin.module';
 import { ConfigModule } from '@nestjs/config';
 import { VoyagerController } from './voyager.controller';
+import { AppResolver } from './app.resolver';
 
 @Module({
   imports: [
@@ -15,6 +16,11 @@ import { VoyagerController } from './voyager.controller';
       introspection: true,
       autoSchemaFile:  join(process.cwd(), 'src/schema.gql'),
       context: ({ req, res }) => ({ req, res }),
+      // @ts-ignore
+      cors: {
+        origin: ['http://localhost:3000', 'http://localhost:4200'],
+        credentials: true,
+      },
       playground: {
         settings: {
           'editor.theme': 'dark',
@@ -24,7 +30,7 @@ import { VoyagerController } from './voyager.controller';
         tabs: [
           {
             endpoint: '/graphql',
-            query: `# Welcome to SA Academy GraphQL API
+            query: `# Welcome to Ustozhob GraphQL API
 # 
 # This playground allows you to explore and test the API.
 # 
@@ -67,7 +73,8 @@ query GetCourses($page: Int, $perPage: Int) {
     AdminModule,
   ],
   controllers: [VoyagerController],
-  providers: [ ],
+  providers: [ AppResolver ],
+  
 })
 
 

@@ -12,33 +12,55 @@ export class Course {
   @Field(() => Int, { nullable: false })
   id:number
 
-  @Field(() => GraphQLTime, { nullable: false })
+  
+  @Field(() => GraphQLTime, { nullable: true })
   created_at: Date
   @Field(() => String, { nullable: false })
   course_name: string
   
-  @Field(() => Int, { nullable: false, defaultValue: 0 })
+  @Field(() => Number, { nullable: true })
   real_price: number
   
-  @Field(() => Int, { nullable: false , defaultValue: 0 })
+  @Field(() => Number, { nullable: true })
   sale_price: number
   
   @Field(() => Int, { nullable: true })
   teacher_id?:number
   
   @Field(() => Int, { nullable: true }) 
-  user_id           ?:number
+  user_id?:number
 
   @Field(() => String, { nullable: true })
   thumbnail?: string
 
 
   @Field(() => Int, { nullable: true })
-  academiy_id ?:number
+  academiy_id?:number
 
   @Field(() => Int, { nullable: true })
-  category_id   ?:number
+  category_id?:number
   
+  @Field(() => Boolean, { nullable: true })
+  is_live?: boolean;
+
+  @Field(() => Int, { nullable: true })
+  parent_id?: number;
+
+  @Field(() => String, { nullable: true })
+  what_student_learn?: string;
+
+  @Field(() => String, { nullable: true })
+  requirements?: string;
+
+  @Field(() => String, { nullable: true })
+  course_target_level?: string;
+
+  @Field(() => String, { nullable: true })
+  subtitle?: string;
+
+  @Field(() => CourseStatus, { nullable: false })
+  status: CourseStatus
+
   @Field(() => Academy, { nullable: true })
   sa_academies?: Academy
   
@@ -52,22 +74,31 @@ export class Course {
   sa_users?: User
 
   @Field(() => Lecture, { nullable: true })
-  sa_lectures       ?:Lecture[]
-
-  @Field(() => CourseStatus, { nullable: false })
-  status: CourseStatus
+  sa_lectures?:Lecture[]
 
   @Field(() => [UserCourses], { nullable: true })
-  sa_user_courses   ?:UserCourses[]
+  sa_user_courses?:UserCourses[]
 
   @Field(() => [UserFeadbacks], { nullable: true })
-  sa_user_feadbacks ?:UserFeadbacks[]
+  sa_user_feadbacks?:UserFeadbacks[]
 
   @Field(() => [UserPayment], { nullable: true })
   sa_user_payments?:UserPayment[]
 
   @Field(() => [Section], { nullable: true })
   sa_sections?: Section[]
+
+  @Field(() => String, { nullable: true })
+  reviewFeedback?: string;
+
+  @Field(() => Date, { nullable: true })
+  lastReviewedAt?: Date;
+
+  @Field(() => Date, { nullable: true })
+  publishedAt?: Date;
+
+  @Field(() => String, { nullable: true })
+  pendingChanges?: string;
 }
 
 
@@ -84,9 +115,11 @@ export class PaginatedCourses {
 
 export enum CourseStatus {
   DRAFT = "DRAFT",
-  SUBMITTED_FOR_REVIEW = "SUBMITTED_FOR_REVIEW",
-  APPROVED = "APPROVED",
+  PENDING_REVIEW = "PENDING_REVIEW",
+  PUBLISHED = "PUBLISHED",  
   REJECTED = "REJECTED",
+  UPDATE_PENDING_REVIEW = "UPDATE_PENDING_REVIEW",
+
 }
 
 registerEnumType(CourseStatus, {

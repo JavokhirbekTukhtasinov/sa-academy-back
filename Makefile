@@ -11,6 +11,7 @@ help:
 	@echo "  clean            - Remove all containers and volumes"
 	@echo "  setup-localstack - Setup LocalStack AWS resources"
 	@echo "  migrate          - Run database migrations"
+	@echo "  seed             - Run database seeding"
 	@echo "  test             - Run tests"
 	@echo "  studio           - Open Prisma Studio"
 
@@ -47,6 +48,10 @@ setup-localstack:
 # Run migrations
 migrate:
 	docker-compose -f docker-compose.dev.yml exec app npx prisma migrate dev
+
+# Run seeding
+seed:
+	docker-compose -f docker-compose.dev.yml exec app yarn seed
 
 # Run tests
 test:

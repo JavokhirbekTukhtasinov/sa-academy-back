@@ -15,12 +15,10 @@ export class UpdateCourseInput {
   @Field(() => String, { nullable: true })
   course_name?: string;
 
-
   @IsOptional()
   @IsString()
   @Field(() => String, { nullable: true })
-  subtitle?: string;  
-
+  subtitle?: string;
 
   @IsOptional()
   @IsString()
@@ -39,14 +37,14 @@ export class UpdateCourseInput {
   course_target_level?: CourseLevelTarget;
 
   @IsOptional()
-  @IsString()
-  @Field(() => String, { nullable: true })
-  real_price?: string;
+  @IsNumber()
+  @Field(() => Number, { nullable: true })
+  real_price?: number;
 
   @IsOptional()
-  @IsString()
-  @Field(() => String, { nullable: true })
-  sale_price?: string;
+  @IsNumber()
+  @Field(() => Number, { nullable: true })
+  sale_price?: number;
 
   @IsOptional()
   @IsString()
@@ -61,4 +59,33 @@ export class UpdateCourseInput {
   @IsNumber()
   @Field(() => Int, { nullable: true })
   category_id?: number;
-  }
+
+  @IsOptional()
+  @IsNumber()
+  @Field(() => Int, { nullable: true })
+  sub_category_id?: number;
+
+  @IsOptional()
+  @Field(() => Int, { nullable: true, description: 'Academy ID' })
+  academiy_id?: number;
+
+  @IsOptional()
+  @Field(() => Int, { nullable: true, description: 'Teacher ID' })
+  teacher_id?: number;
+
+  @IsOptional()
+  @Field(() => Int, { nullable: true, description: 'User ID' })
+  user_id?: number;
+
+  @IsOptional()
+  @Field(() => Boolean, { nullable: true })
+  is_live?: boolean;
+
+  @IsOptional()
+  @Field(() => Int, { nullable: true, description: 'Parent Course ID' })
+  parent_id?: number;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  status?: string;
+}

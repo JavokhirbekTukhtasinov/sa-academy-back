@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -22,6 +24,8 @@ import { JwtService } from '@nestjs/jwt';
 import { AcademyStatus } from '../academies/entities/academy.entity';
 import { UsersService } from '../users/users.service';
 import { OAuth2Client } from 'google-auth-library';
+import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -30,6 +34,7 @@ export class AuthService {
   );
 
   constructor(
+    private readonly configService:   ConfigService,
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
@@ -44,8 +49,9 @@ export class AuthService {
         },
       });
       if (existingUser) {
-        throw new BadRequestException('User already exists');
+        throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
       }
+
       const otp = await generateOTP();
       const password = await generatePasswordHash(createAuthInput.password);
       const otp_expires_at = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
@@ -70,7 +76,7 @@ export class AuthService {
         message: 'success',
       };
     } catch (error) {
-      throw new BadRequestException(error);
+      throw new Error(error);
     }
   }
 
@@ -559,7 +565,8 @@ export class AuthService {
 
   async generateAccessToken(payload: any) {
     return await this.jwtService.sign(payload, {
-      expiresIn: '15m',
+      // expiresIn: '15m', // 15 mins TODO: change to 15 mins later
+      expiresIn: '7d',
       secret: process.env.JWT_SECRET,
     });
   }
@@ -668,29 +675,45 @@ export class AuthService {
 
   async loginWithGoogleToken(token: string) {
     try {
-      const ticket = await this.googleClient.verifyIdToken({
-        idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
+      // Use OAuth2 access token to get user info from Google
+      // const response = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+      //   headers: {
+      //     Authorization: `Bearer ${token}`,
+      //   },
+      // });
+      // const profile = response.data;
+      // console.log({profile})
+      // if (!profile || !profile.sub) {
+      //   throw new BadRequestException('Invalid Google access token');
+      // }
 
-      const profile = ticket.getPayload();
-      if (!profile) {
-        throw new BadRequestException('Invalid Google token');
-      }
-      
-      const user = await this.validateGoogleUser({
-        googleId: profile.sub,
-        email: profile.email,
-        firstName: profile.given_name,
-        lastName: profile.family_name,
-        avatar: profile.picture,
-      });
+      const url = `https://oauth2.googleapis.com/token?code=${token}` +
+      `&client_id=${process.env.GOOGLE_CLIENT_ID}` +
+      `&client_secret=${process.env.GOOGLE_CLIENT_SECRET}` +
+      `&redirect_uri=${process.env.GOOGLE_CALLBACK_URL}` +
+      `&grant_type=authorization_code`;
 
-      const tokens = await this.googleLogin(user);
+    const authorized: any = await axios.post(url)
 
-      return { user, ...tokens };
-
+    if (Object.keys(authorized.data).length === 0) {
+      throw new UnauthorizedException();
+    }
+    const infoUrl = `https://www.googleapis.com/oauth2/v2/userinfo`;
+ 
+    const { data } = await axios.get(infoUrl, {
+      headers: { Authorization: `Bearer ${authorized.data.access_token}` }
+    })
+          const user = await this.validateGoogleUser({
+            googleId: data.sub,
+            email: data.email,
+            firstName: data.given_name,
+            lastName: data.family_name,
+            avatar: data.picture,
+          });
+          const tokens = await this.googleLogin(user);
+          return { ...user, ...tokens };
     } catch (error) {
+      console.log(error)
       throw new UnauthorizedException('Google authentication failed');
     }
   }

@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "build": "npx prisma db pull && npx prisma generate && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -18,7 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "setup:prod": "npx prisma db pull && npx prisma generate && yarn build && yarn start:prod"
+    "setup:prod": "npx prisma db pull && npx prisma generate && yarn build && yarn start:prod",
+    "seed": "ts-node prisma/seed.ts"
   },
   "engines": {
     "node": ">=20"
@@ -40,6 +41,7 @@
     "@types/passport-jwt": "^4.0.1",
     "add": "^2.0.6",
     "apollo-server-express": "^3.13.0",
+    "axios": "^1.10.0",
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",

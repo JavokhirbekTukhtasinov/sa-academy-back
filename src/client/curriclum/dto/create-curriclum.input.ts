@@ -17,11 +17,11 @@ export class CreateCurriclumInput {
   description?: string;
 
   @Field(() => String, { nullable: true })
-  vide_link?: string;
+  video_link?: string;
 
   @Field(() => String, { nullable: true })
   article?: string;
 
   @Field(() => [CreateCurriclumAttachmentInput], { nullable: true })
-  attachments?: CreateCurriclumAttachmentInput[];
+  sa_curriclum_attachments?: CreateCurriclumAttachmentInput[];
 }

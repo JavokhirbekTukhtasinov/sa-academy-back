@@ -4,12 +4,9 @@ import { Auth, LoginInput, RequestPasswordResetInput, RequestPasswordResetRespon
 import { CreateAuthInput } from './dto/create-auth.input';
 import { UpdateAuthInput } from './dto/update-auth.input';
 import { Res, UseGuards } from '@nestjs/common';
-import { Response } from 'express';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
 import { TelegramAuthGuard } from '../guards/telegram-auth.guard';
 import { TelegramLoginInput } from './entities/social-auth.entity';
-import { AuthGuard } from '../guards/gql-auth.guard';
-import { CurrentUser } from '../decorators/current-user.decorator';
 
 @Resolver(() => Auth)
 export class AuthResolver {
@@ -44,17 +41,21 @@ export class AuthResolver {
   async login(@Args('loginInput') LoginInput: LoginInput , @Context() context) {
     const user = await this.authService.login(LoginInput);
     const {res} = context;
-
+    console.log('access_token:', user?.access_token);
     res.cookie('role', LoginInput.role, {
       httpOnly: false,
-      maxAge: 15 * 60 * 1000, // match access token
+      // maxAge: 15 * 60 * 1000, // match access token
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days TODO: change to 15 mins later
     });
 
     res.cookie('access_token', user?.access_token, {
       httpOnly: true,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 15 * 60 * 1000, // 15 mins
+      // secure: process.env.NODE_ENV === 'production',
+      secure: false,
+      // maxAge: 15 * 60 * 1000, // 15 mins
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days TODO: change to 15 mins later
+      path: '/',
     });
 
     res.cookie('refresh_token', user?.refresh_token, {
@@ -62,20 +63,21 @@ export class AuthResolver {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+
   });
     return user
   }
 
 
-  @Query(() => String, { name: 'initiateGoogleLogin' }) // Renamed for clarity from 'googleLogin'
-  @UseGuards(GoogleAuthGuard)
-  initiateGoogleLogin() {
-    // This route is protected by GoogleAuthGuard.
-    // Accessing it (e.g. via browser navigation to a corresponding REST endpoint handled by a controller, or direct GraphQL query if client handles redirect)
-    // will trigger the Google OAuth flow.
-    // The actual response here doesn't matter as much as the guard's redirect effect.
-    return 'Redirecting to Google...';
-  }
+  // @Query(() => String, { name: 'initiateGoogleLogin' }) // Renamed for clarity from 'googleLogin'
+  // @UseGuards(GoogleAuthGuard)
+  // initiateGoogleLogin() {
+  //   // This route is protected by GoogleAuthGuard.
+  //   // Accessing it (e.g. via browser navigation to a corresponding REST endpoint handled by a controller, or direct GraphQL query if client handles redirect)
+  //   // will trigger the Google OAuth flow.
+  //   // The actual response here doesn't matter as much as the guard's redirect effect.
+  //   return 'Redirecting to Google...';
+  // }
 
   @Mutation(() => userLoginResponse, { name: 'loginWithTelegram' })
   @UseGuards(TelegramAuthGuard) // This guard will trigger the TelegramStrategy
@@ -189,21 +191,25 @@ export class AuthResolver {
     const { res } = context;
     const { user, access_token, refresh_token } =
       await this.authService.loginWithGoogleToken(token);
-
     res.cookie('access_token', access_token, {
       httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
+      // secure: process.env.NODE_ENV === 'production',
+      secure: true,
       maxAge: 15 * 60 * 1000, // 15 mins
+      path: '/',
     });
 
     res.cookie('refresh_token', refresh_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      // secure: process.env.NODE_ENV === 'production',
+      secure: true,
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/',
     });
 
+    console.log({user, access_token, refresh_token})
     return { user, access_token, refresh_token };
   }
 

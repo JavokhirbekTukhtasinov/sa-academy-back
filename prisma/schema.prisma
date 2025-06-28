@@ -122,35 +122,43 @@ model sa_course_messages {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sa_courses {
-  id                  Int                  @id @default(autoincrement())
-  created_at          DateTime             @default(now()) @db.Timestamptz(6)
-  course_name         String?
-  real_price          Decimal?             @db.Decimal
-  teacher_id          Int?
-  user_id             Int?
-  thumbnail           String?
-  academiy_id         Int?
-  category_id         Int?
-  sale_price          Decimal?             @db.Decimal
-  description         String?
-  status              course_status        @default(DRAFT)
-  is_live             Boolean              @default(false)
-  parent_id           Int?
-  what_student_learn  String?
-  requirements        String?
-  course_target_level course_level_target? @default(ALL)
-  subtitle            String?
-  sa_carts            sa_carts[]
-  sa_academies        sa_academies?        @relation(fields: [academiy_id], references: [id])
-  sa_categories       sa_categories?       @relation(fields: [category_id], references: [id])
-  sa_teachers         sa_teachers?         @relation(fields: [teacher_id], references: [id])
-  sa_users            sa_users?            @relation(fields: [user_id], references: [id])
-  sa_lectures         sa_lectures[]
-  sa_liked_courses    sa_liked_courses[]
-  sa_sections         sa_sections[]
-  sa_user_courses     sa_user_courses[]
-  sa_user_feadbacks   sa_user_feadbacks[]
-  sa_user_payments    sa_user_payments[]
+  id                       Int                        @id @default(autoincrement())
+  created_at               DateTime                   @default(now()) @db.Timestamptz(6)
+  course_name              String?
+  real_price               Decimal?                   @db.Decimal
+  teacher_id               Int?
+  user_id                  Int?
+  thumbnail                String?
+  academiy_id              Int?
+  category_id              Int?
+  sale_price               Decimal?                   @db.Decimal
+  description              String?
+  status                   course_status              @default(DRAFT)
+  is_live                  Boolean                    @default(false)
+  parent_id                Int?
+  what_student_learn       String?
+  requirements             String?
+  course_target_level      course_level_target?       @default(ALL)
+  subtitle                 String?
+  sub_category_id          Int?
+  last_reviewed_at         DateTime?
+  pending_changes          Json?
+  published_at             DateTime?
+  review_feedback          String?
+  course_change_logs       CourseChangeLog[]
+  sa_carts                 sa_carts[]
+  sa_academies             sa_academies?              @relation(fields: [academiy_id], references: [id])
+  sa_categories            sa_categories?             @relation(fields: [category_id], references: [id], onUpdate: NoAction)
+  sa_sub_categories        sa_sub_categories?         @relation(fields: [sub_category_id], references: [id], onUpdate: NoAction)
+  sa_teachers              sa_teachers?               @relation(fields: [teacher_id], references: [id])
+  sa_users                 sa_users?                  @relation(fields: [user_id], references: [id])
+  sa_enrolled_user_courses sa_enrolled_user_courses[]
+  sa_lectures              sa_lectures[]
+  sa_liked_courses         sa_liked_courses[]
+  sa_sections              sa_sections[]
+  sa_user_courses          sa_user_courses[]
+  sa_user_feadbacks        sa_user_feadbacks[]
+  sa_user_payments         sa_user_payments[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -251,6 +259,7 @@ model sa_sub_categories {
   created_at     DateTime       @default(now()) @db.Timestamptz(6)
   name           String?
   parent_type_id Int?
+  sa_courses     sa_courses[]
   sa_categories  sa_categories? @relation(fields: [parent_type_id], references: [id], onDelete: Cascade)
 }
 
@@ -358,6 +367,7 @@ model sa_users {
   password_reset_token_expires_at DateTime?                  @db.Timestamptz(6)
   sa_carts                        sa_carts[]
   sa_courses                      sa_courses[]
+  sa_enrolled_user_courses        sa_enrolled_user_courses[]
   sa_lecture_progress             sa_lecture_progress[]
   sa_liked_courses                sa_liked_courses?
   sa_teachers                     sa_teachers?
@@ -365,6 +375,31 @@ model sa_users {
   sa_user_feadbacks               sa_user_feadbacks[]
   sa_user_lecture_progress        sa_user_lecture_progress[]
   sa_user_payments                sa_user_payments[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model sa_enrolled_user_courses {
+  id         Int         @id @default(autoincrement())
+  created_at DateTime    @default(now()) @db.Timestamptz(6)
+  course_id  Int?
+  user_id    Int?
+  expires_at DateTime?   @db.Timestamptz(6)
+  sa_courses sa_courses? @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  sa_users   sa_users?   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model CourseChangeLog {
+  id              Int             @id @default(autoincrement())
+  course_id       Int
+  change_type     ChangeType
+  field           String
+  old_value       Json?
+  new_value       Json?
+  requires_review Boolean
+  status          ChangeLogStatus @default(PENDING)
+  created_at      DateTime        @default(now())
+  sa_courses      sa_courses      @relation(fields: [course_id], references: [id], onDelete: Cascade)
 }
 
 /// This enum is commented in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -384,9 +419,10 @@ enum course_level_target {
 
 enum course_status {
   DRAFT
-  SUBMITTED_FOR_REVIEW
-  APPROVED
+  PENDING_REVIEW
+  PUBLISHED
   REJECTED
+  UPDATE_PENDING_REVIEW
 }
 
 /// This enum is commented in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -400,4 +436,18 @@ enum curriclum_types {
   VIDEO
   ARTICLE
   QUIZ
+}
+
+enum ChangeType {
+  CONTENT_UPDATE
+  VIDEO_UPLOAD
+  PRICING_CHANGE
+  VISIBILITY_CHANGE
+  OTHER
+}
+
+enum ChangeLogStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

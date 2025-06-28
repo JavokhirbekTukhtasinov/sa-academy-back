@@ -68,11 +68,7 @@ create_bucket() {
 }
 
 # Create all buckets
-create_bucket "sa-academy-files"
-create_bucket "sa-academy-thumbnails"
-create_bucket "sa-academy-avatars"
-create_bucket "sa-academy-videos"
-create_bucket "sa-academy-curriculum"
+create_bucket "ustozhob"
 
 # List created buckets
 echo ""
@@ -84,7 +80,7 @@ echo "LocalStack setup completed!"
 echo ""
 echo "Available services:"
 echo "- LocalStack: http://localhost:4566"
-echo "- S3 buckets: sa-academy-files, sa-academy-thumbnails, sa-academy-avatars, sa-academy-videos, sa-academy-curriculum"
+echo "- S3 buckets: ustozhob"
 echo ""
 echo "You can now use these AWS services in your application with the following configuration:"
 echo "AWS_ACCESS_KEY_ID=test"

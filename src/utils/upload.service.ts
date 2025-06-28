@@ -7,27 +7,34 @@ import { FileUpload } from 'graphql-upload';
 import { Readable } from 'stream';
 import {buffer} from 'node:stream/consumers'
 import { Upload } from 'src/scalers/upload.scaler';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UploadService {
-  private wasabi = new S3Client({
-    endpoint: 'https://s3.ap-northeast-1.wasabisys.com',
-    region: 'ap-northeast-1',
+
+  constructor(
+    private readonly configService: ConfigService,
+  ) {}
+
+  private s3 = new S3Client({
+    endpoint: this.configService.get('LOCALSTACK_S3_ENDPOINT') || 'http://localhost:4566',
+    region: this.configService.get('AWS_REGION') || 'us-east-1',
     forcePathStyle: true,
     credentials: {
-      accessKeyId: process.env.WASABI_KEY,
-      secretAccessKey: process.env.WASABI_SECRET,
+      accessKeyId: this.configService.get('AWS_ACCESS_KEY_ID') || 'test',
+      secretAccessKey: this.configService.get('AWS_SECRET_ACCESS_KEY') || 'test',
     },
   });
 
+  
   async generateSignedVideoUrl(filename: string, destination: string) {
     const key = `${destination}-${filename}`;
     const command = new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET,
+      Bucket: this.configService.get('S3_BUCKET'),
       Key: key,
       ContentType: 'video/mp4',
     });
-    const uploadUrl = await getSignedUrl(this.wasabi, command, { expiresIn: 300 });
+    const uploadUrl = await getSignedUrl(this.s3, command, { expiresIn: 300 });
     return { uploadUrl, key };
   }
 
@@ -44,14 +51,14 @@ export class UploadService {
     const _buffer = await this.streamToBuffer(stream);
 
     console.log(_buffer.length)
-    await this.wasabi.send(new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET,
+    await this.s3.send(new PutObjectCommand({
+      Bucket: this.configService.get('S3_BUCKET'),
       Key: key,
       Body: _buffer,
       ContentType: mimetype,
       ContentLength: _buffer.length
     }));
-    return { key, url: `https://s3.ap-northeast-1.wasabisys.com/${process.env.S3_BUCKET}/${key}`,};
+    return { key, url: `${this.configService.get('LOCALSTACK_S3_ENDPOINT') || 'http://localhost:4566'}/${this.configService.get('S3_BUCKET')}/${key}` };
   } catch (error) {
     console.log(error)   
     throw new BadRequestException(error);
@@ -88,17 +95,17 @@ export class UploadService {
     const stream = createReadStream();
 
     const command = new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET,
+      Bucket: this.configService.get('S3_BUCKET'),
       Key: key,
       Body: stream,
       ContentType: this.getContentType(ext, type),
     });
 
-    await this.wasabi.send(command);
+    await this.s3.send(command);
 
     return {
       key,
-      url: `https://s3.ap-northeast-1.wasabisys.com/${process.env.S3_BUCKET}/${key}`,
+      url: `${this.configService.get('LOCALSTACK_S3_ENDPOINT') || 'http://localhost:4566'}/${this.configService.get('S3_BUCKET')}/${key}`,
     };
   }
 
@@ -114,9 +121,9 @@ export class UploadService {
 
   public async deleteFile(key: string) {
     const command = new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET,
+      Bucket: this.configService.get('S3_BUCKET'),
       Key: key,
     });
-    await this.wasabi.send(command);
+    await this.s3.send(command);
   }
 }

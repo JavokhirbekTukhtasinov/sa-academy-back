@@ -39,8 +39,8 @@ export class SignUpresponse {
 @InputType()
 export class SignUpInput {
   
-  @Field()
-  @IsEmail()
+  @Field({nullable: false})
+  @IsEmail({},{message: 'Invalid email address'})
   email: string;
   
   @Field()

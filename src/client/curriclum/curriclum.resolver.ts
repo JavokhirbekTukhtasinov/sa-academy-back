@@ -13,6 +13,10 @@ import { GenerateAttachmentUploadSignedUrlInput } from './dto/generate-signed-ur
 import { VideoSignedUrlResponse } from './dto/signed-url.response';
 import { AttachmentSignedUrlResponse } from './dto/signed-url.response';
 import { CurriclumWithSignedUrlsResponse } from './dto/signed-url.response';
+import { GenerateCurriclumSignedUrlInput } from './dto/generate-signed-url.input';
+import { SignedUrlResponse } from './dto/signed-url.response';
+import { AuthGuard } from '../guards/gql-auth.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Resolver(() => Curriclum)
 export class CurriclumResolver {
@@ -38,6 +42,7 @@ export class CurriclumResolver {
     return this.curriclumService.findBySectionId(sectionId);
   }
 
+  @UseGuards(AuthGuard)
   @Mutation(() => Curriclum)
   updateCurriclum(@Args('updateCurriclumInput') updateCurriclumInput: UpdateCurriclumInput) {
     return this.curriclumService.update(updateCurriclumInput.id, updateCurriclumInput);
@@ -70,6 +75,7 @@ export class CurriclumResolver {
   }
 
   // Signed URL resolvers
+  @UseGuards(AuthGuard)
   @Mutation(() => VideoSignedUrlResponse)
   generateVideoSignedUrl(@Args('input') input: GenerateVideoSignedUrlInput) {
     return this.curriclumService.generateVideoSignedUrl(input);
@@ -109,5 +115,23 @@ export class CurriclumResolver {
   async getFileMetadata(@Args('url', { type: () => String }) url: string) {
     const metadata = await this.curriclumService.getFileMetadata(url);
     return JSON.stringify(metadata);
+  }
+
+  @Mutation(() => Boolean)
+  removeAttachmentFile(@Args('attachmentId', { type: () => Int }) attachmentId: number) {
+    return this.curriclumService.removeAttachmentFile(attachmentId);
+  }
+
+  @Mutation(() => Boolean)
+  removeCurriclumFile(
+    @Args('curriclumId', { type: () => Int }) curriclumId: number,
+    @Args('fileField', { type: () => String }) fileField: string
+  ) {
+    return this.curriclumService.removeCurriclumFile(curriclumId, fileField);
+  }
+
+  @Mutation(() => SignedUrlResponse)
+  generateCurriclumSignedUrl(@Args('input') input: GenerateCurriclumSignedUrlInput) {
+    return this.curriclumService.generateCurriclumSignedUrl(input);
   }
 }

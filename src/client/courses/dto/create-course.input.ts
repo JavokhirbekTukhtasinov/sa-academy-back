@@ -13,17 +13,14 @@ export class CreateCourseInput {
   course_name: string;
 
   @IsOptional()
-  @IsString()
-  @Field(() => String, { nullable: true })
-  real_price?: string;
+  @Field(() => Number, { nullable: true })
+  real_price?: number;
 
   @IsOptional()
-  @IsString()
-  @Field(() => String, { nullable: true })
-  sale_price?: string;
+  @Field(() => Number, { nullable: true })
+  sale_price?: number;
 
   @IsOptional()
-  @IsString()
   @Field(() => String, { nullable: true })
   description?: string;
 
@@ -32,15 +29,48 @@ export class CreateCourseInput {
   thumbnail?: Promise<FileUpload>;
   
   @IsNotEmpty()
-  @IsNumber()
   @Field(() => Int)
   category_id: number;
 
-  // @Field(() => Int, { nullable: true, description: 'Academy ID as stringified BigInt' })
-  // academiy_id?: number;
+  @IsOptional()
+  @Field(() => Int, { nullable: true, description: 'Academy ID' })
+  academiy_id?: number;
 
-  // @Field(() => Int, { nullable: false, description: 'Course type ID as stringified BigInt' })
-  // course_type_id?: number;
+  @IsOptional()
+  @Field(() => Int, { nullable: true, description: 'Teacher ID' })
+  teacher_id?: number;
+
+  @IsOptional()
+  @Field(() => Int, { nullable: true, description: 'User ID' })
+  user_id?: number;
+
+  @IsOptional()
+  @Field(() => Boolean, { nullable: true })
+  is_live?: boolean;
+
+  @IsOptional()
+  @Field(() => Int, { nullable: true, description: 'Parent Course ID' })
+  parent_id?: number;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  what_student_learn?: string;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  requirements?: string;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  course_target_level?: string;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  subtitle?: string;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  status?: string;
 }
 
 

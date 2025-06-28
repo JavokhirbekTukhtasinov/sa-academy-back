@@ -3,11 +3,12 @@ import { CoursesService } from './courses.service';
 import { Course, PaginatedCourses } from './entities/course.entity';
 import { CreateCourseInput, CreateCourseResponse } from './dto/create-course.input';
 import { UpdateCourseInput } from './dto/update-course.input';
+import { EnrollCourseInput } from './dto/enroll-course.input';
+import { EnrollmentResponse } from './dto/enrollment-response';
+import { UserEnrollment } from './entities/enrollment.entity';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../guards/gql-auth.guard';
-import { RolesGuard } from '../guards/roles.guard';
 import { CurrentUser } from '../decorators/current-user.decorator';
-import { Roles } from '../decorators/oles.decorator';
 import { Category, CurrentUserProps, SubCategory } from '../entities/common.entities';
 
 @Resolver(() => Course)
@@ -20,6 +21,7 @@ export class CoursesResolver {
     return this.coursesService.create(createCourseInput, user);
   }
 
+
   @Query(() => Course, { name: 'course' })
   findOneByUserId(@Args('id', { type: () => Int }) id: number) {
     return this.coursesService.findOneByUserId(id);
@@ -31,16 +33,43 @@ export class CoursesResolver {
   }
 
 
-  @Query(() => PaginatedCourses, { name: 'confirmedCourses' , description: 'Get confirmed courses for all users' })
+  @Query(() => PaginatedCourses, { name: 'getConfirmedCourses' , description: 'Get confirmed courses for all users' })
   getConfirmedCourses(@Args('page', { type: () => Int, nullable: true }) page: number, @Args('perPage', { type: () => Int, nullable: true }) perPage: number, @Args('search', { type: () => String , nullable: true}) search: string, @Args('categoryId', { type: () => Int, nullable: true }) categoryId: number, @Args('subCategoryId', { type: () => Int, nullable: true }) subCategoryId: number, @Args('teacherId', { type: () => Int, nullable: true }) teacherId: number) { 
     return this.coursesService.getConfirmedCourses(page, perPage, search, categoryId, subCategoryId, teacherId);
   }
 
+  @UseGuards(AuthGuard)
+  @Mutation(() => EnrollmentResponse, { name: 'enrollInCourse', description: 'Enroll user in a course' })
+  enrollInCourse(@CurrentUser() user: CurrentUserProps, @Args('enrollCourseInput') enrollCourseInput: EnrollCourseInput) {
+    return this.coursesService.enrollInCourse(user, enrollCourseInput);
+  }
+
+
+  @UseGuards(AuthGuard)
+  @Query(() => [UserEnrollment], { name: 'getUserEnrollments', description: 'Get all enrollments for the current user' })
+  getUserEnrollments(
+    @CurrentUser() user: CurrentUserProps, 
+    @Args('page', { type: () => Int, nullable: true }) page: number,
+    @Args('perPage', { type: () => Int, nullable: true }) perPage: number
+  ) {
+    return this.coursesService.getUserEnrollments(user, page, perPage);
+  }
+
+  @UseGuards(AuthGuard)
+  @Query(() => Boolean, { name: 'checkEnrollmentStatus', description: 'Check if user is enrolled in a specific course' })
+  checkEnrollmentStatus(@CurrentUser() user: CurrentUserProps, @Args('courseId', { type: () => Int }) courseId: number) {
+    return this.coursesService.checkEnrollmentStatus(user, courseId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => EnrollmentResponse, { name: 'unenrollFromCourse', description: 'Unenroll user from a course' })
+  unenrollFromCourse(@CurrentUser() user: CurrentUserProps, @Args('courseId', { type: () => Int }) courseId: number) {
+    return this.coursesService.unenrollFromCourse(user, courseId);
+  }
 
 
   @UseGuards(AuthGuard)
   @Query(() => PaginatedCourses)
-  // @Roles('TEACHER')
   getTeacherCourses(@CurrentUser() user: CurrentUserProps, @Args('page', { type: () => Int, nullable: true }) page: number, @Args('perPage', { type: () => Int, nullable: true }) perPage: number, @Args('search', { type: () => String , nullable: true}) search: string) {
     return this.coursesService.findTeacherCourses(user, page, perPage, search);
   }
@@ -68,9 +97,27 @@ export class CoursesResolver {
     return this.coursesService.generateSignedUrl(fileName);
   }
 
+
   @UseGuards(AuthGuard)
   @Mutation(() => Course)
   removeCourse(@Args('id', { type: () => Int }) id: number) {
     return this.coursesService.remove(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => Course)
+  submitCourseForReview(@CurrentUser() user: CurrentUserProps, @Args('courseId', { type: () => Int }) courseId: number) {
+    return this.coursesService.submitCourseForReview(courseId, user);
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => Course)
+  adminReviewCourse(
+    @CurrentUser() user: CurrentUserProps,
+    @Args('courseId', { type: () => Int }) courseId: number,
+    @Args('approved', { type: () => Boolean }) approved: boolean,
+    @Args('feedback', { type: () => String, nullable: true }) feedback?: string,
+  ) {
+    return this.coursesService.adminReviewCourse(courseId, approved, feedback, user);
   }
 }

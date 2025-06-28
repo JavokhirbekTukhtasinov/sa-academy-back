@@ -30,12 +30,12 @@ export class SectionsResolver {
     return this.sectionsService.findOne(id, user);
   }
 
-
   @UseGuards(AuthGuard)
   @Query(() => [Section], { name: 'getSectionsByCourse' })
   findByCourseId(@CurrentUser() user: User, @Args('courseId', { type: () => Int }) courseId: number) {
     return this.sectionsService.findByCourseId(courseId, user);
   }
+
 
   @UseGuards(AuthGuard)
   @Mutation(() => Section)
@@ -47,5 +47,15 @@ export class SectionsResolver {
     @Mutation(() => Section)
   removeSection(@CurrentUser() user: User, @Args('id', { type: () => Int }) id: number) {
     return this.sectionsService.remove(id, user);
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => Boolean)
+  changeSectionOrder(
+    @CurrentUser() user: User,
+    @Args('courseId', { type: () => Int }) courseId: number,
+    @Args({ name: 'sectionIds', type: () => [Int] }) sectionIds: number[]
+  ) {
+    return this.sectionsService.changeSectionOrder(courseId, sectionIds, user);
   }
 } 

@@ -13,6 +13,15 @@ export class SignedUrlResponse {
 
   @Field(() => String, { nullable: true })
   contentType?: string;
+
+  @Field(() => String, { nullable: true })
+  fileName?: string;
+
+  @Field(() => String, { nullable: true })
+  originalUrl?: string;
+
+  @Field(() => String, { nullable: true })
+  actualUrl?: string;
 }
 
 @ObjectType()

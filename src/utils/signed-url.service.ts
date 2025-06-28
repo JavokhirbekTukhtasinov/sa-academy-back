@@ -18,7 +18,7 @@ export class SignedUrlService {
   private bucketName: string;
 
   constructor(private configService: ConfigService) {
-    this.bucketName = this.configService.get<string>('AWS_S3_BUCKET_NAME') || 'sa-academy-media';
+    this.bucketName = this.configService.get<string>('S3_BUCKET') || 'sa-academy-media';
     
     this.s3Client = new S3Client({
       region: this.configService.get<string>('AWS_REGION') || 'us-east-1',
@@ -26,6 +26,8 @@ export class SignedUrlService {
         accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
         secretAccessKey: this.configService.get<string>('AWS_SECRET_ACCESS_KEY'),
       },
+      endpoint: this.configService.get<string>('AWS_S3_ENDPOINT') || 'http://localhost:4566',  
+      forcePathStyle: true,
     });
   }
 
@@ -66,7 +68,7 @@ export class SignedUrlService {
     fileName: string,
     contentType: string,
     options: SignedUrlOptions = {}
-  ): Promise<string> {
+  ): Promise<{signedUrl: string, file_url: string}> {
     try {
       const { expiresIn = 3600, metadata = {} } = options;
       
@@ -75,7 +77,8 @@ export class SignedUrlService {
       const command = new PutObjectCommand({
         Bucket: this.bucketName,
         Key: key,
-        ContentType: contentType,
+        ACL: 'public-read',
+        ContentType: contentType || 'video/mp4',
         Metadata: {
           ...metadata,
           uploadedAt: new Date().toISOString(),
@@ -88,7 +91,7 @@ export class SignedUrlService {
       });
 
       this.logger.log(`Generated upload signed URL for video: ${key}`);
-      return signedUrl;
+      return {signedUrl, file_url: key};
     } catch (error) {
       this.logger.error(`Failed to generate upload signed URL for video: ${error.message}`, error.stack);
       throw new Error('Failed to generate video upload signed URL');

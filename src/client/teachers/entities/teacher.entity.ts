@@ -1,5 +1,7 @@
 import { ObjectType, Field, Int, GraphQLISODateTime } from '@nestjs/graphql';
 import { Academy } from 'src/client/academies/entities/academy.entity';
+import { Course } from 'src/client/courses/entities/course.entity';
+import { User } from 'src/client/users/entities/user.entity';
 
 @ObjectType()
 export class Teacher {
@@ -31,10 +33,25 @@ export class Teacher {
   @Field(() => String, { description: 'Example field (placeholder)' })
   image:string
 
-  sa_courses:any
-  sa_teacher_files: any
+  // sa_courses:any
+  // sa_teacher_files: any
 
   @Field( () => Academy, { nullable: true } )
   sa_academies?: Academy
+
+
+  @Field(() => [Course], { nullable: true })
+  sa_courses?: Course[]
+
+
+  @Field(() => Int, { nullable: true })
+  user_id?: number
+
+  @Field( () => User, { nullable: true })
+  sa_users?: User
+
+  // @Field(() => [TeacherFile], { nullable: true })
+  // sa_teacher_files?: TeacherFile[]
+
 }
 
