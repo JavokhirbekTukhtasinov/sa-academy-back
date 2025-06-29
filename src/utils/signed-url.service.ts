@@ -18,8 +18,7 @@ export class SignedUrlService {
   private bucketName: string;
 
   constructor(private configService: ConfigService) {
-    this.bucketName = this.configService.get<string>('S3_BUCKET') || 'sa-academy-media';
-    
+    this.bucketName = this.configService.get<string>('S3_BUCKET') || 'sa-academy-media';    
     this.s3Client = new S3Client({
       region: this.configService.get<string>('AWS_REGION') || 'us-east-1',
       credentials: {
@@ -34,6 +33,7 @@ export class SignedUrlService {
   /**
    * Generate a signed URL for viewing/downloading a curriclum video
    */
+
   async generateVideoSignedUrl(
     videoUrl: string,
     options: SignedUrlOptions = {}
@@ -73,7 +73,7 @@ export class SignedUrlService {
       const { expiresIn = 3600, metadata = {} } = options;
       
       const key = `curriclums/videos/${Date.now()}-${fileName}`;
-      
+
       const command = new PutObjectCommand({
         Bucket: this.bucketName,
         Key: key,

@@ -191,22 +191,22 @@ export class AuthResolver {
     const { res } = context;
     const { user, access_token, refresh_token } =
       await this.authService.loginWithGoogleToken(token);
+
     res.cookie('access_token', access_token, {
       httpOnly: true,
-      sameSite: 'none',
+      sameSite: 'lax',
       // secure: process.env.NODE_ENV === 'production',
-      secure: true,
-      maxAge: 15 * 60 * 1000, // 15 mins
-      path: '/',
+      secure: false,
+      // maxAge: 15 * 60 * 1000, // 15 mins
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     res.cookie('refresh_token', refresh_token, {
       httpOnly: true,
       // secure: process.env.NODE_ENV === 'production',
-      secure: true,
-      sameSite: 'none',
+      secure: false,
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      path: '/',
     });
 
     console.log({user, access_token, refresh_token})

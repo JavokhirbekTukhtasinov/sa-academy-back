@@ -4,10 +4,17 @@ import { User } from './entities/user.entity';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
 import { UserCourses, UserFeadbacks, UserPayment } from './entities/user.entity';
+import { CoursesService } from '../courses/courses.service';
+import { Course } from '../courses/entities/course.entity';
+import { CurrentUser } from '../decorators/current-user.decorator';
+
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../guards/gql-auth.guard';
+import { CurrentUserProps } from '../entities/common.entities';
 
 @Resolver(() => User)
 export class UsersResolver {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService, private readonly coursesService: CoursesService) {}
 
   // @Mutation(() => User)
   // createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
@@ -29,23 +36,45 @@ export class UsersResolver {
     return this.usersService.update(updateUserInput.id, updateUserInput);
   }
 
-  @Mutation(() => User)
-  removeUser(@Args('id', { type: () => Int }) id: number) {
-    return this.usersService.remove(id);
-  }
+@UseGuards(AuthGuard)
+@Mutation(() => Boolean)
+addToCart(@CurrentUser() user: CurrentUserProps, @Args('courseId', { type: () => Int }) courseId: number) {
+  return  this.usersService.addToCart(user, courseId);
+}
 
-  @Query(() => [UserCourses], { name: 'getUserLikedCourses' })
-  getUserLikedCourses(@Args('userId', { type: () => Int }) userId: number) {
-    return this.usersService.getUserLikedCourses(userId);
-  }
+@UseGuards(AuthGuard)
+@Mutation(() => Boolean)
+removeFromCart(@CurrentUser() user: CurrentUserProps, @Args('cartId', { type: () => Int }) cartId: number) {
+  return this.usersService.removeFromCart(user, cartId);
+}
 
-  @Query(() => [UserFeadbacks], { name: 'getUserFeadbacks' })
-  getUserFeadbacks(@Args('userId', { type: () => Int }) userId: number) {
-    return this.usersService.getUserFeadbacks(userId);
-  }
+@UseGuards(AuthGuard)
+@Query(() => [Course], { name: 'getUserCart' })
+getUserCart(@CurrentUser() user: CurrentUserProps) {
+  return this.usersService.getUserCart(user);
+}
 
-  @Query(() => [UserPayment], { name: 'getUserPayments' })
-  getUserPayments(@Args('userId', { type: () => Int }) userId: number) {
-    return this.usersService.getUserPayments(userId);
+@UseGuards(AuthGuard)
+@Query(() => [Course], { name: 'getUserLikedCourses' })
+getUserLikedCourses(@CurrentUser() user: CurrentUserProps) {
+  return this.usersService.getUserLikedCourses(user.id);
+}
+
+@UseGuards(AuthGuard)
+@Query(() => [UserFeadbacks], { name: 'getUserFeadbacks' })
+getUserFeadbacks(@CurrentUser() user: CurrentUserProps) {
+  return this.usersService.getUserFeadbacks(user.id);
+}
+
+@UseGuards(AuthGuard)
+@Query(() => [UserPayment], { name: 'getUserPayments' })
+getUserPayments(@CurrentUser() user: CurrentUserProps) {
+  return this.usersService.getUserPayments(user.id);
+}
+
+  @UseGuards(AuthGuard)
+  @Query(() => [Course], { name: 'myCourses' })
+  myCourses(@CurrentUser() user: CurrentUserProps) {
+    return this.coursesService.getUserEnrollments(user);
   }
 }

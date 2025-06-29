@@ -6,5 +6,4 @@ export class UpdateTeacherInput extends PartialType(CreateTeacherInput) {
   @Field(() => Int)
   id: number;
 
-  
 }

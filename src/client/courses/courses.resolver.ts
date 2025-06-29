@@ -21,16 +21,15 @@ export class CoursesResolver {
     return this.coursesService.create(createCourseInput, user);
   }
 
-
   @Query(() => Course, { name: 'course' })
   findOneByUserId(@Args('id', { type: () => Int }) id: number) {
     return this.coursesService.findOneByUserId(id);
   }
 
-  @Query(() => Course, { name: 'course' })
-  getOneByCourseId(@Args('id', { type: () => Int }) id: number) {
-    return this.coursesService.findOneByCourseId(id);
-  }
+  // @Query(() => Course, { name: 'course' })
+  // getOneByCourseId(@Args('id', { type: () => Int }) id: number) {
+  //   return this.coursesService.findOneByCourseId(id);
+  // }
 
 
   @Query(() => PaginatedCourses, { name: 'getConfirmedCourses' , description: 'Get confirmed courses for all users' })
@@ -43,7 +42,6 @@ export class CoursesResolver {
   enrollInCourse(@CurrentUser() user: CurrentUserProps, @Args('enrollCourseInput') enrollCourseInput: EnrollCourseInput) {
     return this.coursesService.enrollInCourse(user, enrollCourseInput);
   }
-
 
   @UseGuards(AuthGuard)
   @Query(() => [UserEnrollment], { name: 'getUserEnrollments', description: 'Get all enrollments for the current user' })

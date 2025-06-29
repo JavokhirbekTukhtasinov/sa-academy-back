@@ -152,7 +152,67 @@ export class CoursesService {
   async findOneByUserId(id: number) {
     try {
       const course = await this.prisma.sa_courses.findUnique({
-        where: { id }
+        where: { id },
+        include: {
+          sa_teachers: {
+            select: {
+              id: true,
+              first_name: true,
+              last_name: true,
+              full_name: true,
+              image: true
+            }
+          },
+          sa_academies: {
+            select: {
+              id: true,
+              name: true,
+            }
+          },
+          sa_categories: {
+            select: {
+              id: true,
+              name: true,
+            }
+          },
+          sa_sub_categories: {
+            select: {
+              id: true,
+              name: true,
+            }
+          },
+          sa_sections: {
+            orderBy: {
+              order_num: 'asc'
+            },
+            select: {
+              id: true,
+              name: true,
+              status: true,
+              updated_at: true,
+              order_num: true,
+              sa_curriclums: {
+                orderBy: {
+                  order_num: 'asc'
+                },
+                select: {
+                  id: true,
+                  title: true,
+                  description: true,
+                  order_num: true,
+                  sa_curriclum_attachments: {
+                    select: {
+                      id: true,
+                      name: true,
+                      type: true,
+                      link_url: true,
+                    }
+                  }
+                }
+            }
+            }
+          }
+        }
       });
 
       if (!course) {
@@ -188,32 +248,27 @@ export class CoursesService {
           ...(subCategoryId && { sub_category_id: subCategoryId }),
           ...(teacherId && { teacher_id: teacherId }) 
         },
-        orderBy: {
-          id: 'desc'
-        },
         include: {
+          _count: {
+            select: {
+              sa_liked_courses: true,
+              sa_enrolled_user_courses: true,
+            }
+          },
           sa_categories: {
             select: {
               id: true,
               name: true,
-              sa_sub_categories: {
-                select: {
-                  id: true,
-                  name: true
-                }
-              }
             }
           },
-          sa_teachers: {
-            select: {
-              id: true,
-              first_name: true,
-              last_name: true,
-              full_name: true,
-              image: true
-            }
-          }
-        }
+          sa_teachers: true,
+          sa_sub_categories: true,
+        },
+        orderBy: [
+          { sa_enrolled_user_courses: { _count: 'desc' } },
+          { sa_liked_courses: { _count: 'desc' } },
+          { created_at: 'desc' }
+        ]
       });
     } catch (error) {
       this.logger.error(`Failed to get confirmed courses: ${error.message}`, error.stack);
@@ -240,53 +295,54 @@ export class CoursesService {
 
 
   async enrollInCourse(user: CurrentUserProps, enrollCourseInput: EnrollCourseInput): Promise<EnrollmentResponse> {
-    try {
-      const course = await this.prisma.sa_courses.findUnique({
-        where: { id: enrollCourseInput.courseId }
-      });
+    const course = await this.prisma.sa_courses.findUnique({
+      where: { id: enrollCourseInput.courseId }
+    });
 
-      if (!course) {
-        throw new BadRequestException('Course not found');
+    if (!course) throw new BadRequestException('Course not found');
+
+    // Check if user is already enrolled
+    const existingEnrollment = await this.prisma.sa_enrolled_user_courses.findFirst({
+      where: {
+        user_id: user.id,
+        course_id: enrollCourseInput.courseId
       }
+    });
+    if (existingEnrollment) throw new BadRequestException('Already enrolled');
 
-      if (course.status !== CourseStatus.PUBLISHED) {
-        throw new BadRequestException('Course is not available for enrollment');
-      }
+    // Check if course is free
+    const isFree = (Number(course.sale_price) ?? Number(course.real_price)) === 0;
 
-      // Check if user is already enrolled
-      const existingEnrollment = await this.prisma.sa_enrolled_user_courses.findFirst({
+    if (!isFree) {
+      // Check if user has paid for the course
+      const payment = await this.prisma.sa_user_payments.findFirst({
         where: {
           user_id: user.id,
-          course_id: enrollCourseInput.courseId
-        }
-      });
-
-      if (existingEnrollment) {
-        throw new BadRequestException('You are already enrolled in this course');
-      }
-
-      // Create enrollment
-      const enrollment = await this.prisma.sa_enrolled_user_courses.create({
-        data: {
-          user_id: user.id,
           course_id: enrollCourseInput.courseId,
-          expires_at: enrollCourseInput.expiresAt ? new Date(enrollCourseInput.expiresAt) : null
+          // status: 'SUCCESS',
         }
       });
-
-      this.logger.log(`User ${user.id} enrolled in course ${enrollCourseInput.courseId}`);
-
-      return {
-        message: 'Successfully enrolled in course',
-        enrollmentId: enrollment.id,
-        courseId: enrollment.course_id,
-        userId: enrollment.user_id,
-        expiresAt: enrollment.expires_at
-      };
-    } catch (error) {
-      this.logger.error(`Failed to enroll in course: ${error.message}`, error.stack);
-      throw new BadRequestException(error.message || 'Failed to enroll in course');
+      if (!payment) {
+        throw new BadRequestException('Payment required to enroll in this course');
+      }
     }
+
+    // Enroll the user
+    const enrollment = await this.prisma.sa_enrolled_user_courses.create({
+      data: {
+        user_id: user.id,
+        course_id: enrollCourseInput.courseId,
+        expires_at: enrollCourseInput.expiresAt ? new Date(enrollCourseInput.expiresAt) : null
+      }
+    });
+
+    return {
+      message: 'Successfully enrolled in course',
+      enrollmentId: enrollment.id,
+      courseId: enrollment.course_id,
+      userId: enrollment.user_id,
+      expiresAt: enrollment.expires_at
+    };
   }
 
   async getUserEnrollments(user: CurrentUserProps, page: number = 1, perPage: number = 10): Promise<any> {

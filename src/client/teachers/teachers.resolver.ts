@@ -15,7 +15,6 @@ import { CurrentUserProps } from '../entities/common.entities';
 export class TeachersResolver {
   constructor(private readonly teachersService: TeachersService) {}
 
-
   @UseGuards(AuthGuard)
   @Mutation(() => CreateTeacherResponse)
   createTeacher(@CurrentUser() user: CurrentUserProps, @Args('createTeacherInput') createTeacherInput: CreateTeacherInput) {
@@ -65,9 +64,10 @@ export class TeachersResolver {
     return this.teachersService.findOne(id);
   }
 
+  @UseGuards(AuthGuard)
   @Mutation(() => Teacher)
-  updateTeacher(@Args('updateTeacherInput') updateTeacherInput: UpdateTeacherInput) {
-    return this.teachersService.update(updateTeacherInput.id, updateTeacherInput);
+  updateTeacher(@CurrentUser() user: CurrentUserProps, @Args('updateTeacherInput') updateTeacherInput: UpdateTeacherInput) {
+    return this.teachersService.update(user, updateTeacherInput);
   }
 
   @Mutation(() => Teacher)

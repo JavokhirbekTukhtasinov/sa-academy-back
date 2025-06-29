@@ -480,15 +480,11 @@ type Query {
   auth(id: Int!): Auth!
   users: [User!]!
   user(id: Int!): User!
-  getUserLikedCourses(userId: Int!): [UserCourses!]!
-  getUserFeadbacks(userId: Int!): [UserFeadbacks!]!
-  getUserPayments(userId: Int!): [UserPayment!]!
-  academies: [Academy!]!
-  academy(id: Int!): Academy!
-  academyCategories: [AcademyCategories!]!
-  getTeacherSettings: TeacherSettings!
-  teachers: [Teacher!]!
-  teacher(id: Int!): Teacher!
+  getUserCart: [Course!]!
+  getUserLikedCourses: [Course!]!
+  getUserFeadbacks: [UserFeadbacks!]!
+  getUserPayments: [UserPayment!]!
+  myCourses: [Course!]!
   course(id: Int!): Course!
 
   """Get confirmed courses for all users"""
@@ -505,6 +501,12 @@ type Query {
 
   """Generate signed URL for course thumbnail upload"""
   generateSignedUrl(fileName: String!): String!
+  academies: [Academy!]!
+  academy(id: Int!): Academy!
+  academyCategories: [AcademyCategories!]!
+  getTeacherSettings: TeacherSettings!
+  teachers: [Teacher!]!
+  teacher(id: Int!): Teacher!
   lectures: [Lecture!]!
   lecture(id: Int!): Lecture!
   curriclums: [Curriclum!]!
@@ -536,16 +538,8 @@ type Mutation {
   signInWithGoogle(token: String!): GoogleLoginResponse!
   createAuth(createAuthInput: CreateAuthInput!): Auth!
   updateUser(updateUserInput: UpdateUserInput!): User!
-  removeUser(id: Int!): User!
-  createAcademy(createAcademyInput: CreateAcademyInput!): createAcademyInputResponse!
-  updateAcademy(updateAcademyInput: UpdateAcademyInput!): Academy!
-  removeAcademy(id: Int!): Academy!
-  createTeacher(createTeacherInput: CreateTeacherInput!): CreateTeacherResponse!
-  updateTeacherSettings(updateTeacherSettingsInput: UpdateTeacherSettingsInput!): TeacherSettings!
-  uploadTeacherFile(uploadTeacherFileInput: UploadTeacherFileInput!): TeacherSettings!
-  deleteTeacherFile(fileId: Int!): TeacherSettings!
-  updateTeacher(updateTeacherInput: UpdateTeacherInput!): Teacher!
-  removeTeacher(id: Int!): Teacher!
+  addToCart(courseId: Int!): Boolean!
+  removeFromCart(cartId: Int!): Boolean!
   createCourse(createCourseInput: CreateCourseInput!): CreateCourseResponse!
 
   """Enroll user in a course"""
@@ -557,6 +551,15 @@ type Mutation {
   removeCourse(id: Int!): Course!
   submitCourseForReview(courseId: Int!): Course!
   adminReviewCourse(courseId: Int!, approved: Boolean!, feedback: String): Course!
+  createAcademy(createAcademyInput: CreateAcademyInput!): createAcademyInputResponse!
+  updateAcademy(updateAcademyInput: UpdateAcademyInput!): Academy!
+  removeAcademy(id: Int!): Academy!
+  createTeacher(createTeacherInput: CreateTeacherInput!): CreateTeacherResponse!
+  updateTeacherSettings(updateTeacherSettingsInput: UpdateTeacherSettingsInput!): TeacherSettings!
+  uploadTeacherFile(uploadTeacherFileInput: UploadTeacherFileInput!): TeacherSettings!
+  deleteTeacherFile(fileId: Int!): TeacherSettings!
+  updateTeacher(updateTeacherInput: UpdateTeacherInput!): Teacher!
+  removeTeacher(id: Int!): Teacher!
   createLecture(input: CreateLectureInput!): CreateLectureResponse!
   updateLecture(updateLectureInput: UpdateLectureInput!): Lecture!
   removeLecture(id: Int!): Lecture!
@@ -651,6 +654,79 @@ input UpdateUserInput {
   id: Int!
 }
 
+input CreateCourseInput {
+  course_name: String!
+  real_price: Float
+  sale_price: Float
+  description: String
+
+  """Thumbnail image file"""
+  thumbnail: Upload
+  category_id: Int
+
+  """Academy ID"""
+  academiy_id: Int
+
+  """Teacher ID"""
+  teacher_id: Int
+
+  """User ID"""
+  user_id: Int
+  is_live: Boolean
+
+  """Parent Course ID"""
+  parent_id: Int
+  what_student_learn: String
+  requirements: String
+  course_target_level: String
+  subtitle: String
+  status: String
+}
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
+
+input EnrollCourseInput {
+  courseId: Int!
+  expiresAt: String
+}
+
+input UpdateCourseInput {
+  id: Int!
+  course_name: String
+  subtitle: String
+  what_student_learn: String
+  requirements: String
+  course_target_level: CourseLevelTarget
+  real_price: Float
+  sale_price: Float
+  description: String
+  thumbnail: Upload
+  category_id: Int
+  sub_category_id: Int
+
+  """Academy ID"""
+  academiy_id: Int
+
+  """Teacher ID"""
+  teacher_id: Int
+
+  """User ID"""
+  user_id: Int
+  is_live: Boolean
+
+  """Parent Course ID"""
+  parent_id: Int
+  status: String
+}
+
+enum CourseLevelTarget {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  ALL
+}
+
 input CreateAcademyInput {
   """Academy name"""
   name: String!
@@ -682,9 +758,6 @@ input CreateAcademyInput {
   """Optional multiple academy files"""
   sa_academy_files: [Upload!]
 }
-
-"""The `Upload` scalar type represents a file upload."""
-scalar Upload
 
 input UpdateAcademyInput {
   """Academy name"""
@@ -747,76 +820,6 @@ input UploadTeacherFileInput {
 input UpdateTeacherInput {
   is_agree_terms: Boolean
   id: Int!
-}
-
-input CreateCourseInput {
-  course_name: String!
-  real_price: Float
-  sale_price: Float
-  description: String
-
-  """Thumbnail image file"""
-  thumbnail: Upload
-  category_id: Int!
-
-  """Academy ID"""
-  academiy_id: Int
-
-  """Teacher ID"""
-  teacher_id: Int
-
-  """User ID"""
-  user_id: Int
-  is_live: Boolean
-
-  """Parent Course ID"""
-  parent_id: Int
-  what_student_learn: String
-  requirements: String
-  course_target_level: String
-  subtitle: String
-  status: String
-}
-
-input EnrollCourseInput {
-  courseId: Int!
-  expiresAt: String
-}
-
-input UpdateCourseInput {
-  id: Int!
-  course_name: String
-  subtitle: String
-  what_student_learn: String
-  requirements: String
-  course_target_level: CourseLevelTarget
-  real_price: Float
-  sale_price: Float
-  description: String
-  thumbnail: Upload
-  category_id: Int
-  sub_category_id: Int
-
-  """Academy ID"""
-  academiy_id: Int
-
-  """Teacher ID"""
-  teacher_id: Int
-
-  """User ID"""
-  user_id: Int
-  is_live: Boolean
-
-  """Parent Course ID"""
-  parent_id: Int
-  status: String
-}
-
-enum CourseLevelTarget {
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
-  ALL
 }
 
 input CreateLectureInput {

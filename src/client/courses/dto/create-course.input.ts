@@ -28,9 +28,9 @@ export class CreateCourseInput {
   @Field(() => GraphQLUpload, { nullable: true, description: 'Thumbnail image file' })
   thumbnail?: Promise<FileUpload>;
   
-  @IsNotEmpty()
-  @Field(() => Int)
-  category_id: number;
+  @IsOptional()
+  @Field(() => Int, { nullable: true })
+  category_id?: number;
 
   @IsOptional()
   @Field(() => Int, { nullable: true, description: 'Academy ID' })

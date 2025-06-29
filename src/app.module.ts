@@ -18,7 +18,7 @@ import { AppResolver } from './app.resolver';
       context: ({ req, res }) => ({ req, res }),
       // @ts-ignore
       cors: {
-        origin: ['http://localhost:3000', 'http://localhost:4200'],
+        origin: '*',
         credentials: true,
       },
       playground: {
